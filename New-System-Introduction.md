@@ -1,4 +1,4 @@
-#A New System
+# A New System
 
 The current system of governance, education, and society is
 enough to live in, but not enough to thrive in. A new system that can overcome these flaws
