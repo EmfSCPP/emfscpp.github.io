@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vector Calculator</title> <!-- Domain Name:  vector.edgeone.app -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+.content-width {
+background: #E9E9E9;
+padding: 30px;
+margin: 0 auto;
+max-width: 259vh;
+}
+body {
+border: 4px solid black;
+background-image: linear-gradient(90deg, #D3DFE2, #FFFFFF);
+margin: 39px;
+}
+h1 {
+font-size: 50px;
+padding: 20px;
+background-color: #FFFFFF;
+border: 3px solid black;
+border-radius: 20px;
+font-family: "Jetbrains Mono", Monospace;
+}
+h2 {
+font-family: monospace, serif;
+}
+p {
+font-family: "Jetbrains Mono", Monospace;
+}
+.render {
+transition: 0.2s;
+font-size: 29px;
+border: 3.4px solid black;
+padding: 6px;
+border-radius: 7px;
+background-color: #94B5D7;
+}
+.render:hover {
+transition: 0.2s;
+color: #005932;
+border: 3.4px solid black;
+padding: 10px;
+}
+.render:active {
+transition: 0.2s;
+color: #005932;
+border: 3.4px solid black;
+padding: 10px;
+}
+.render.clicked {
+transition: 0.2s;
+color: black;
+border: 3.4px solid black;
+padding: 6px;
+}
+.clear {
+transition: 0.2s;
+font-size: 29px;
+border: 3.4px solid black;
+padding: 6px;
+border-radius: 7px;
+background-color: #94B5D7;
+}
+.clear:hover {
+transition: 0.2s;
+color: #005932;
+border: 3.4px solid black;
+padding: 10px;
+}
+.clear.clicked {
+transition: 0.2s;
+color: black;
+border: 3.4px solid black;
+padding: 6px;
+}
+.nodisplay {
+opacity: 0;
+pointer-events: none;
+}
+.input {
+border: 3px solid black;
+margin-bottom: 6px;
+border-radius: 7px;
+padding: 6px;
+background: transparent;
+font-family: 'JetBrains Mono', monospace;
+font-size: 18px;
+width: 80px;
+text-align: center;
+outline: none;
+}
+
+</style>
+
+</head>
+<body>
+<main>
+<header>
+<div class="content-width">
+<h1>Vector Display</h1>
+<h2 id=buttons><text id="render" class="render">Render</text><text class="nodisplay">a:</text><text id="clear" class="clear">Clear</text></h2>
+<h3><input class="input" id="x"><br><input class="input" id="y"></h3>
+<p id="info"></p>
+<svg width="100%" height="100%"
+viewBox="-10 -15 410 430"
+xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<style type="text/css">
+<![CDATA[
+.numbers {
+fill: #999;
+font-size: 10px;
+}
+]]>
+</style>
+<g stroke="black" stroke-width="400">       <!-- 40 x 40 grid black -->
+<path d="M0,200L400,200" stroke-dasharray="0.2,9.6,0.2,0" />
+<path d="M200,0L200,400" stroke-dasharray="0.2,9.6,0.2,0" />
+<path d="M0,200L400,200" stroke-dasharray="0.5,99,0.5,0" />
+<path d="M200,0L200,400" stroke-dasharray="0.5,99,0.5,0" />
+</g>
+<g transform="translate(0,-5)" class="numbers" text-anchor="middle">
+<text x="100"></text> <text x="100"></text> <text x="300"></text> </g>
+<g transform="translate(-3,4)" class="numbers" text-anchor="end">
+<text y="100"></text> <text y="200"></text> <text y="300"></text> </g>
+</svg>
+<p id="error"></p>
+<a href="index.html">Back To Index</a>
+</div class="content-width">
+</header>
+<script>
+window.alert("This website is optimal for desktop use only, exceptions apply");
+
+const btn = document.getElementById("render");
+const clear = document.getElementById("clear");
+const error = document.getElementById("error");
+const svg = document.querySelector("svg")
+
+function Vector() {
+const xInput = Number(document.getElementById("x").value);
+const yInput = Number(document.getElementById("y").value);
+if (isNaN(xInput) || isNaN(yInput)) {
+error.textContent = "Input Must Be A Decimal"
+}
+else if (xInput == 0 && yInput == 0) {
+error.textContent = "No Vector To Be Displayed";
+}
+else if (Math.abs(xInput) > 19 || Math.abs(yInput) > 19) {
+error.textContent = "Vector Is Out Of Bounds";
+}
+else {
+error.textContent = "";
+const line = document.createElementNS("http://www.w3.org/2000/svg", "line")
+line.setAttribute("class", "vector");
+
+const xPos = xInput * 10 + 200;
+const yPos = 200 - yInput * 10;
+
+
+const angle = Math.atan2(yPos - 200, xPos - 200);
+const arrowLength = 12;
+
+const x1 = xPos - arrowLength * Math.cos(angle - 0.4);
+const y1 = yPos - arrowLength * Math.sin(angle - 0.4);
+const x2 = xPos - arrowLength * Math.cos(angle + 0.4);
+const y2 = yPos - arrowLength * Math.sin(angle + 0.4);
+
+const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+arrow.setAttribute("points", `${xPos},${yPos} ${x1},${y1} ${x2},${y2}`);
+arrow.setAttribute("fill", "black");
+arrow.setAttribute("class", "vector");
+svg.appendChild(arrow);
+
+const coords = document.createElementNS("http://www.w3.org/2000/svg", "text");
+coords.setAttribute("class", "vector");
+coords.setAttribute("x", xPos);
+coords.setAttribute("y", yPos)
+coords.textContent = `(${xInput}, ${yInput})`;
+svg.appendChild(coords);
+
+line.setAttribute("stroke", "black");
+line.setAttribute("stroke-width", "2");
+line.setAttribute("x1", "200");
+line.setAttribute("y1", "200");
+line.setAttribute("x2", xPos);
+line.setAttribute("y2", yPos);
+svg.appendChild(line);
+}
+}
+function Clear() {
+const vectors = Array.from(svg.querySelectorAll(".vector"));
+vectors.forEach(line => line.remove());
+error.textContent = null;
+}
+
+btn.addEventListener("click", Vector);
+clear.addEventListener("click", Clear);
+
+</script>
+</main>
+</body>
+</html>
