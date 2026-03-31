@@ -167,6 +167,11 @@
         background-color: #e9fbff;
         color: #000;
       }
+      .colorSelected {
+        transition: 0.2s;
+        stroke: #FFFFFF;
+        stroke-width: 5;
+      }
 
       @media (max-width: 640px) {
         h1 {
@@ -228,18 +233,11 @@
               <circle id="col2" r="30" cx="160" cy="70" fill="#9163F2" />
               <circle id="col3" r="30" cx="240" cy="70" fill="#E30B45" />
               <circle id="col4" r="30" cx="320" cy="70" fill="#FFCB00" />
-              <circle
-                id="colPick"
-                r="30"
-                cx="400"
-                cy="70"
-                fill="url(#rainbow)"
-              />
+              <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
             </svg>
           </div>
         </div>
       </div>
-      <p id="guide" class="guide"></p>
       <svg id="mainSvg" viewBox="-400 -400 800 800">
         <g id="view">
           <g id="network">
@@ -249,10 +247,12 @@
           </g>
         </g>
       </svg>
+      <p id="guide" class="guide"></p>
       <div class="buttons">
         <button id="addBtn">+</button>
         <button id="deleteBtn">-</button>
         <button id="pathBtn">~</button>
+        <button id="clearBtn">&#10005;</button>
       </div>
     </div>
 
@@ -267,7 +267,8 @@
       let transX = 0;
       let transY = 0;
 
-      let Col;
+      let NodeCol = "#73CFFF";
+      let PathCol = "#FFFFFF";
 
       const RADIUS = 40;
 
@@ -342,7 +343,7 @@
         PG.classList.add("path");
         path.classList.add("pathV");
         path.setAttribute("fill", "none");
-        path.setAttribute("stroke", "#FFFFFF");
+        path.setAttribute("stroke", PathCol);
         path.setAttribute("stroke-width", "3.6");
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("data-start", NodeStart.id);
@@ -586,7 +587,6 @@
       const Add = document.getElementById("addBtn");
       let nodeCount = 1;
       Add.addEventListener("click", () => {
-        const svgBox = svg.getBoundingClientRect();
         const NewNode = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "circle",
@@ -594,7 +594,7 @@
         //NNG = New Node Group
         const NNG = document.createElementNS("http://www.w3.org/2000/svg", "g");
         NewNode.setAttribute("r", "40");
-        NewNode.setAttribute("fill", Col || "#73CFFF");
+        NewNode.setAttribute("fill", NodeCol);
         NewNode.setAttribute("cx", -transX / scale);
         NewNode.setAttribute("cy", -transY / scale);
 
@@ -671,14 +671,22 @@
         document.addEventListener("click", DeleteClick);
       });
       //Delete End
+      //Clear Start
+      const clearBtn = document.getElementById("clearBtn");
+      clearBtn.addEventListener("click", () => {
+        if (confirm("Clear all nodes and paths?")) {
+          network.innerHTML = "";
+          nodeCount = 1;
+          pathCount = 1;
+        }
+      });
+      //Clear End
       //Zoom&Pan Start
       let previousDist;
       let prevMidX;
       let prevMidY;
 
-      svg.addEventListener(
-        "touchstart",
-        (e) => {
+      svg.addEventListener("touchstart", (e) => {
           if (e.touches.length == 2) {
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -686,14 +694,8 @@
             prevMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
             prevMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
           }
-        },
-        {
-          passive: false,
-        },
-      );
-      svg.addEventListener(
-        "touchmove",
-        (e) => {
+        }, {passive: false});
+      svg.addEventListener("touchmove", (e) => {
           e.preventDefault();
           if (e.touches.length == 2) {
             const svgRect = svg.getBoundingClientRect();
@@ -725,20 +727,13 @@
 
             scale *= TRatio;
 
-            view.setAttribute(
-              "transform",
-              `translate(${transX}, ${transY}) scale(${scale})`,
-            );
+            view.setAttribute("transform", `translate(${transX}, ${transY}) scale(${scale})`);
 
             previousDist = Mdist;
             prevMidX = MidX;
             prevMidY = MidY;
           }
-        },
-        {
-          passive: false,
-        },
-      );
+        }, {passive: false});
       //Zoom&Pan End
       //Settings Start
       const settingsBtn = document.getElementById("settingsBtn");
@@ -770,8 +765,7 @@
       });
 
       //Pathing Settings Start
-      const pathSettings = {
-        //Map to avoid repetition in updating paths
+      const pathSettings = {   //Map to avoid repetition in updating paths
         SP11: "4", //after selection
         SP12: "8",
         SP13: "Smooth",
@@ -815,24 +809,26 @@
 
       const styleAppliers = {
         SP21: ".node",
-        SP22: ".path",
+        SP22: ".path"
       };
-
-      const ApplyCol = (color) => (e) => {
-        Col = color.getAttribute("fill"); //apply fill to ApplyStyleTo
-        network.querySelectorAll(ApplyStyleTo).forEach((el) => {
-          if (ApplyStyleTo == ".path") {
-            const path = el.children[0];
-            path.setAttribute("stroke", Col);
-          }
-          if (Col != "url(#rainbow)") {
-            el.setAttribute("fill", Col);
-          }
+      
+      function ApplyCol(color) {
+        const Color = color.getAttribute("fill");
+        if (Color != "url(#rainbow)") {
+          if (ApplyStyleTo == ".path") PathCol = Color;
+          else if (ApplyStyleTo == ".node") NodeCol = Color;
+        }
+        network.querySelectorAll(ApplyStyleTo).forEach(el => {
+          if (ApplyStyleTo == ".path") el.children[0].setAttribute("stroke", PathCol);
+          else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
         });
-      };
+      }
 
       function SettingStyle(option) {
-        if (!styleAppliers[option.id]) return;
+        if (!styleAppliers[option.id]) {
+            col.removeEventListener("click", ApplyCol(col));
+            return;
+        }
 
         const isSame = ApplyStyleTo === styleAppliers[option.id];
 
@@ -841,13 +837,27 @@
           ApplyStyleTo = null;
         } else {
           ApplyStyleTo = styleAppliers[option.id];
+          if (ApplyStyleTo == ".path") {
+              C1.setAttribute("fill", "#FFFFFF");
+              C2.setAttribute("fill", "#FFDFEE");
+              C3.setAttribute("fill", "#4F4550");
+              C4.setAttribute("fill", "#323931");
+              colorOptions.forEach(ColP=> {
+                ColP.classList.remove("colorSelected");
+              });
+          }
+          else {
+              C1.setAttribute("fill", "#73CFFF");
+              C2.setAttribute("fill", "#9163F2");
+              C3.setAttribute("fill", "#E30B45");
+              C4.setAttribute("fill", "#FFCB00");
+              colorOptions.forEach(ColN => {
+                ColN.classList.remove("colorSelected");
+              });
+          }
           stylePopShow = true;
         }
         stylePopup.style.display = stylePopShow ? "block" : "none";
-        for (let col of colorOptions) {
-          col.addEventListener("click", ApplyCol(col));
-          col.removeEventListener;
-        }
       }
 
       for (let funcLoopB of optsArr2) {
@@ -855,10 +865,21 @@
           e.stopPropagation();
           funcLoopB.classList.toggle("selected");
           SettingStyle(funcLoopB);
-          //func for Settings
           optsArr2.forEach((opt) => {
             if (opt.id === funcLoopB.id) return;
             opt.classList.remove("selected");
+          });
+        });
+      }
+      
+      for (let col of colorOptions) {
+        col.addEventListener("click", (e) => {
+          e.stopPropagation();
+          ApplyCol(col);
+          col.classList.add("colorSelected");
+          colorOptions.forEach(coul => {
+            if (coul == col) return;
+            coul.classList.remove("colorSelected");
           });
         });
       }
