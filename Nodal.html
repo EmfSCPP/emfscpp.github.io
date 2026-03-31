@@ -61,6 +61,10 @@
         touch-action: none;
         width: 100%;
       }
+      
+      .pathHB {
+        pointer-events: stroke;
+      }
 
       .controls {
         display: flex;
@@ -161,6 +165,10 @@
         height: 60px;
         width: 100%;
       }
+      
+      #hexColIn {
+        width: 15vw;
+      }
 
       .selected {
         transition: 0.25s;
@@ -215,26 +223,7 @@
             <div id="SP22">Paths</div>
           </div>
           <div id="stylePopup">
-            Color
-            <svg viewBox="0 0 480 100">
-              <defs>
-                <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color: hsl(0, 100%, 50%)" />
-                  <stop offset="17%" style="stop-color: hsl(60, 100%, 50%)" />
-                  <stop offset="33%" style="stop-color: hsl(120, 100%, 50%)" />
-                  <stop offset="50%" style="stop-color: hsl(180, 100%, 50%)" />
-                  <stop offset="67%" style="stop-color: hsl(240, 100%, 50%)" />
-                  <stop offset="83%" style="stop-color: hsl(300, 100%, 50%)" />
-                  <stop offset="100%" style="stop-color: hsl(360, 100%, 50%)" />
-                </linearGradient>
-              </defs>
-
-              <circle id="col1" r="30" cx="80" cy="70" fill="#73CFFF" />
-              <circle id="col2" r="30" cx="160" cy="70" fill="#9163F2" />
-              <circle id="col3" r="30" cx="240" cy="70" fill="#E30B45" />
-              <circle id="col4" r="30" cx="320" cy="70" fill="#FFCB00" />
-              <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
-            </svg>
+            
           </div>
         </div>
       </div>
@@ -262,15 +251,44 @@
       const svg = document.querySelector("#mainSvg");
       const viewGrid = document.getElementById("view");
       const network = document.getElementById("network");
+      const stylePopup = document.getElementById("stylePopup"); // used in style settings
 
       let scale = 1;
       let transX = 0;
       let transY = 0;
 
-      let NodeCol = "#73CFFF";
-      let PathCol = "#FFFFFF";
+      let NodeCol = "#73CFFF";  //Default Node color
+      let PathCol = "#FFFFFF";  //Default Path color
 
       const RADIUS = 40;
+      
+      //HTML Lines Start
+      const colorPresetDiv = `<svg viewBox="0 0 480 100">
+              <defs>
+                <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color: hsl(0, 100%, 50%)" />
+                  <stop offset="17%" style="stop-color: hsl(60, 100%, 50%)" />
+                  <stop offset="33%" style="stop-color: hsl(120, 100%, 50%)" />
+                  <stop offset="50%" style="stop-color: hsl(180, 100%, 50%)" />
+                  <stop offset="67%" style="stop-color: hsl(240, 100%, 50%)" />
+                  <stop offset="83%" style="stop-color: hsl(300, 100%, 50%)" />
+                  <stop offset="100%" style="stop-color: hsl(360, 100%, 50%)" />
+                </linearGradient>
+              </defs>
+
+              <circle id="col1" r="30" cx="80" cy="70" fill="#73CFFF" />
+              <circle id="col2" r="30" cx="160" cy="70" fill="#9163F2" />
+              <circle id="col3" r="30" cx="240" cy="70" fill="#E30B45" />
+              <circle id="col4" r="30" cx="320" cy="70" fill="#FFCB00" />
+              <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
+            </svg>`
+      stylePopup.innerHTML = colorPresetDiv;
+      
+      const colorPickerDiv = `<p><b>Color</b><p>
+                              <input id="hexColIn"/>
+                              <button id="applyCusCol">Apply</button>
+                              <div id="backBtn">&#8592;</div>`
+      //HTML Lines End
 
       //Path Start
       const Path = document.getElementById("pathBtn");
@@ -375,7 +393,7 @@
         const Y2 =
           parseFloat(end.querySelector("circle").getAttribute("cy")) || 0;
 
-        const startNpoints = [
+        const startNpoints = [   //The arrays got weird because of prettier.
           //Dont Judge The Dictionaries Pls
           {
             x: X1,
@@ -496,7 +514,8 @@
       //Drag Start
       function makeDraggable(node) {
         let drag = false;
-        node.addEventListener("click", () => {
+        node.addEventListener("click", (e) => {
+          if (pathMode) return;
           drag = !drag;
           const circle = node.querySelector("circle");
 
@@ -795,7 +814,12 @@
       }
       //Pathing Settings End
       //Style Settings Start
-      const stylePopup = document.getElementById("stylePopup");
+      let stylePopShow = false;
+      let ApplyStyleTo = null;
+      
+      function loadMainColorMenu() {
+      stylePopup.innerHTML = colorPresetDiv;
+      
       const C1 = document.getElementById("col1");
       const C2 = document.getElementById("col2");
       const C3 = document.getElementById("col3");
@@ -803,33 +827,18 @@
       const C5 = document.getElementById("colPick"); //picker
 
       const colorOptions = [C1, C2, C3, C4, C5];
-
-      let stylePopShow = false;
-      let ApplyStyleTo = null;
-
+      
       const styleAppliers = {
         SP21: ".node",
         SP22: ".path"
       };
       
-      function ApplyCol(color) {
-        const Color = color.getAttribute("fill");
-        if (Color != "url(#rainbow)") {
-          if (ApplyStyleTo == ".path") PathCol = Color;
-          else if (ApplyStyleTo == ".node") NodeCol = Color;
-        }
-        network.querySelectorAll(ApplyStyleTo).forEach(el => {
-          if (ApplyStyleTo == ".path") el.children[0].setAttribute("stroke", PathCol);
-          else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
-        });
-      }
-
       function SettingStyle(option) {
         if (!styleAppliers[option.id]) {
             col.removeEventListener("click", ApplyCol(col));
             return;
         }
-
+        
         const isSame = ApplyStyleTo === styleAppliers[option.id];
 
         if (isSame) {
@@ -859,28 +868,63 @@
         }
         stylePopup.style.display = stylePopShow ? "block" : "none";
       }
-
+      
       for (let funcLoopB of optsArr2) {
-        funcLoopB.addEventListener("click", (e) => {
-          e.stopPropagation();
+        funcLoopB.onclick = () => {
           funcLoopB.classList.toggle("selected");
           SettingStyle(funcLoopB);
           optsArr2.forEach((opt) => {
             if (opt.id === funcLoopB.id) return;
             opt.classList.remove("selected");
           });
-        });
+        }
       }
       
       for (let col of colorOptions) {
         col.addEventListener("click", (e) => {
           e.stopPropagation();
-          ApplyCol(col);
+          if (col == C5) {
+              loadColorPickerMenu();
+          }                                          //Selection and 
+          else {                                     //Deslection Logic broken
           col.classList.add("colorSelected");
+          ApplyCol(col);
           colorOptions.forEach(coul => {
             if (coul == col) return;
-            coul.classList.remove("colorSelected");
+            coul.classList.remove("colorSelected"); //End of comment
           });
+          }
+        });
+      }
+      }
+      loadMainColorMenu();
+      
+      function loadColorPickerMenu() {
+        stylePopup.innerHTML = colorPickerDiv;
+        const applyColBtn = document.getElementById("applyCusCol");
+        applyColBtn.onclick = () => {
+          const HexColor = document.getElementById("hexColIn").value;
+          network.querySelectorAll(ApplyStyleTo).forEach(ele => {
+          ApplyCol(HexColor);
+        });
+        }
+        const backBtn = document.getElementById("backBtn");
+        backBtn.onclick = () => {
+          loadMainColorMenu();
+        }
+      }
+
+      function ApplyCol(color) {
+        let Color;
+        if (color.tagName) Color = color.getAttribute("fill");
+        else Color = color;
+        if (Color != "url(#rainbow)") {
+          if (ApplyStyleTo == ".path") PathCol = Color;
+          else if (ApplyStyleTo == ".node") NodeCol = Color;
+        }
+        network.querySelectorAll(ApplyStyleTo).forEach(el => {
+          if (ApplyStyleTo == ".path") el.children[0].setAttribute("stroke", PathCol);
+          else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
         });
       }
       //Style Settings End

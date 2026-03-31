@@ -1,3 +1,5 @@
+ #READ IN RAW MODE
+ 
  NodalV1 -
 -The first version of the website
   Create graphs, with nodes and paths(no text currently)
@@ -42,3 +44,19 @@ NodalV2 -
 
 Issue - Issues from NodalV1 persist(example: color picker)
 Issue - Clearing confirmation prompt is native(personal issue)
+
+NodalV3 -
+-Added functionality to color picker(rainbow circle)
+ -Type in a hex code, an rgb value, hsl, or in plain text
+  the color you want
+ -Click apply, color will be applied to all (Nodes/Paths)
+   -The style menu optiom you chose
+ -Click the arrow on the bottom to return to the
+  color preset menu
+-Belief : Fixed some event listener stacking and leakage
+          with onclick
+          (belief, i believe that this is solved
+           i can be wrong)
+  
+Issue - Issue from NodalV2 persisting(native confirmation)
+Issus - The UI for the color picker is ugly
