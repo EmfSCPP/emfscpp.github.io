@@ -131,15 +131,21 @@
       }
 
       #stylePopup {
+        display: none;
         background-color: #d8e5ff;
         color: black;
         position: absolute;
-        margin-right: 20px;
+        top: 100%;
+        left: 0;
+        right: unset;
+        margin-top: 5.5px;
         padding: 10px;
-        right: 100%;
         border: 2px solid black;
         border-radius: 8px;
-        width: 20vw;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+        font-size: 0.5rem;
       }
 
       #settingPop1 div,
@@ -148,17 +154,6 @@
         padding: 6px 12px;
         cursor: pointer;
         border-radius: 8px;
-      }
-
-      #stylePopup {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        margin-top: 5.5px;
-        width: 100%;
-        box-sizing: border-box;
-        text-align: center;
       }
 
       #stylePopup svg {

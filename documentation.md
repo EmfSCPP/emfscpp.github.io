@@ -104,6 +104,11 @@ NodalV4 -
    position of the node instead of instantly snapping it to a fine pointer
  }
  -Bug1 is also fixed, dragging should be smoother
+ April 3rd 19:09 - {
+   fixed style pop ups postion on desktop
+   was out of bounds because of two css
+   declarations
+ }
  
  Issue - no keyboard shortcuts
  Issue - Collision resolution limitation - nodes pushing nodes into other nodes
