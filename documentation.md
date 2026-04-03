@@ -91,6 +91,8 @@ NodalV4 -
          Delete Mode Delete Click
 -using requestAnimationFrame in Zoom&Pan to try and reduce issues with zooming and
  panning
+-Live color picker updates, shows what color
+          you are entering live
  
  //Timezone IST
  April 3rd 17:06 - 17:06:30 {
