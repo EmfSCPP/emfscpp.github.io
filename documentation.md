@@ -1,4 +1,4 @@
- ##READ IN RAW MODE
+ # READ IN RAW MODE
  
  NodalV1 -
 -The first version of the website
@@ -39,7 +39,7 @@ NodalV2 -
 -Clear button to clear the whole graph(will ask for confirmation)
 -Style
   -Different color palettes for nodes and paths(paths' color presets are more muted colors)
--Moved guide <p> below mainSvg to avoid z index issues between it and the settings menus
+-Moved guide paragraph below mainSvg to avoid z index issues between it and the settings menus
   Inform if it is a bad stylistic choice(if anyone is here)
 
 Issue - Issues from NodalV1 persist(example: color picker)
@@ -50,7 +50,7 @@ NodalV3 -
  -Type in a hex code, an rgb value, hsl, or in plain text
   the color you want
  -Click apply, color will be applied to all (Nodes/Paths)
-   -The style menu optiom you chose
+   -The style menu option you chose
  -Click the arrow on the bottom to return to the
   color preset menu
 -Belief : Fixed some event listener stacking and leakage
@@ -60,3 +60,48 @@ NodalV3 -
   
 Issue - Issue from NodalV2 persisting(native confirmation)
 Issus - The UI for the color picker is ugly
+
+//Timezone IST
+April 3rd 13:59 - 14:00 {
+  line 813, rAF requests and animation fram frame for that function to the browser, and the browser returns the frame, and it is displayed. this is smoother than trying to execute 8000 changes every second(8000Hz mice).
+}
+April 3rd 16:06 - 16:07 {
+  if in "Select End Node" state(clickTwo, path making), cancelling will not remove the clickTwo event listener, hence, event listener stacking(issue) occurs
+}
+April 3rd 16:17 - 16:17:36 {
+  using prettier to pretty up the file "NodalV4.html"
+}
+April 3rd 16:37 - 16:37:58 {
+  affirmed decision to deaccentuate heading "Nodal"
+}
+April 3rd 16:52 - 16:52:45 {
+  found and fixed event listener removal bug on line 745
+}
+
+NodalV4 -
+-Added desktop port - panning, dragging, zooming.
+  Bug1 - A node will stop following the cursor if it is too fast
+         and obviously, user may normally have cursor acceleration
+-Fixed - when in color picker, and in style section "Paths", exiting will show node
+         color presets.
+         loadMainColorMenu() simply did not have context
+-Turned the back button in color picker menu to be a button instead of a div, and set
+ it to the side of the Apply button
+-Fixed - cleaned event listener stacking in Path Mode clickTwo, and
+         Delete Mode Delete Click
+-using requestAnimationFrame in Zoom&Pan to try and reduce issues with zooming and
+ panning
+ 
+ //Timezone IST
+ April 3rd 17:06 - 17:06:30 {
+   decided to extend V4 by making movement buttery smooth on desktop
+   fixing Bug1
+ }
+ April 3rd 17:18 - {
+   fixed drag stuttering, using requestAnimationFrame to smoothly animate the
+   position of the node instead of instantly snapping it to a fine pointer
+ }
+ -Bug1 is also fixed, dragging should be smoother
+ 
+ Issue - no keyboard shortcuts
+ Issue - Collision resolution limitation - nodes pushing nodes into other nodes

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
-      rel="stylesheet"/>
+      rel="stylesheet"
+    />
     <title>Nodal</title>
 
     <style>
@@ -42,10 +43,12 @@
       }
 
       h1 {
-        font-size: 5rem;
+        text-align: left;
+        padding-left: 25px;
+        font-size: 3rem;
         color: #001021;
         border: 2px solid black;
-        border-radius: 2rem;
+        border-radius: 1.5rem;
         background-color: #e0fffa;
       }
 
@@ -57,11 +60,11 @@
         padding-bottom: 10px;
       }
 
-      svg {
+      #mainSvg {
         touch-action: none;
         width: 100%;
       }
-      
+
       .pathHB {
         pointer-events: stroke;
       }
@@ -109,7 +112,6 @@
         margin-left: 20px;
         padding: 10px;
         left: 100%;
-        top: 3;
         border: 2px solid black;
         border-radius: 8px;
         width: 20vw;
@@ -123,7 +125,6 @@
         margin-right: 20px;
         padding: 10px;
         right: 100%;
-        top: 8;
         border: 2px solid black;
         border-radius: 8px;
         width: 20vw;
@@ -136,7 +137,6 @@
         margin-right: 20px;
         padding: 10px;
         right: 100%;
-        top: 8;
         border: 2px solid black;
         border-radius: 8px;
         width: 20vw;
@@ -165,10 +165,31 @@
         height: 60px;
         width: 100%;
       }
-      
-      #hexColIn {
-        width: 15vw;
+
+      #backBtn {
+        padding: 4px;
       }
+
+      /*AI Code*/
+      #hexColIn {
+        background: none;
+        color: #73cfff;
+        border-radius: 6px;
+        width: 15.5vw;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+
+      #applyCusCol {
+        border: none;
+        border-radius: 8px;
+        margin-top: 7.5px;
+        padding: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.15s;
+      }
+      /*AI Code*/
 
       .selected {
         transition: 0.25s;
@@ -177,35 +198,45 @@
       }
       .colorSelected {
         transition: 0.2s;
-        stroke: #FFFFFF;
+        stroke: #ffffff;
         stroke-width: 5;
       }
 
-      @media (max-width: 640px) {
+      @media (pointer: fine) {
         h1 {
-          font-size: 3rem;
+          font-size: 2rem;
         }
         .settingPop1,
         .settingPop2,
         #stylePopup {
           font-size: 0.5rem;
         }
+        .container {
+          height: 85vh;
+          display: flex;
+          flex-direction: column;
+        }
+        .buttons {
+          margin-top: auto;
+        }
+        #mainSvg {
+          height: 60vh;
+        }
       }
 
       @media (orientation: landscape) {
         .container {
           max-width: 1700px;
-          max-height: 600px;
         }
         svg {
-          height: 30vh;
+          height: 60vh;
         }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Nodal</h1>
+      <h1>Editor</h1>
       <div class="settings">
         <button id="settingsBtn">&#9881;</button>
         <div class="settingPop1" id="settingPop1">
@@ -222,9 +253,7 @@
             <div id="SP21">Nodes</div>
             <div id="SP22">Paths</div>
           </div>
-          <div id="stylePopup">
-            
-          </div>
+          <div id="stylePopup"></div>
         </div>
       </div>
       <svg id="mainSvg" viewBox="-400 -400 800 800">
@@ -249,7 +278,6 @@
       const Snode = document.getElementById("node"); //Snode = Start Node
       const guide = document.getElementById("guide");
       const svg = document.querySelector("#mainSvg");
-      const viewGrid = document.getElementById("view");
       const network = document.getElementById("network");
       const stylePopup = document.getElementById("stylePopup"); // used in style settings
 
@@ -257,12 +285,13 @@
       let transX = 0;
       let transY = 0;
 
-      let NodeCol = "#73CFFF";  //Default Node color
-      let PathCol = "#FFFFFF";  //Default Path color
+      let NodeCol = "#73CFFF"; //Default Node color
+      let PathCol = "#FFFFFF"; //Default Path color
 
       const RADIUS = 40;
-      
+
       //HTML Lines Start
+      // prettier-ignore
       const colorPresetDiv = `<svg viewBox="0 0 480 100">
               <defs>
                 <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -282,12 +311,14 @@
               <circle id="col4" r="30" cx="320" cy="70" fill="#FFCB00" />
               <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
             </svg>`
-      stylePopup.innerHTML = colorPresetDiv;
-      
-      const colorPickerDiv = `<p><b>Color</b><p>
+      // prettier-ignore
+      const colorPickerDiv = `<p><b>Color</b></p>
+                              <svg viewBox="0 0 60 40">
+                              <rect id="colorShow" x="0" y="0" width="60" height="40" rx="15" ry="15"/>
+                              </svg>
                               <input id="hexColIn"/>
                               <button id="applyCusCol">Apply</button>
-                              <div id="backBtn">&#8592;</div>`
+                              <button id="backBtn">&#8592;</button>`
       //HTML Lines End
 
       //Path Start
@@ -301,6 +332,8 @@
       Path.addEventListener("click", () => {
         if (pathMode) {
           guide.style.display = "none";
+          document.removeEventListener("click", clickOne);
+          document.removeEventListener("click", clickTwo);
           pathMode = false;
           return;
         }
@@ -393,7 +426,8 @@
         const Y2 =
           parseFloat(end.querySelector("circle").getAttribute("cy")) || 0;
 
-        const startNpoints = [   //The arrays got weird because of prettier.
+        const startNpoints = [
+          //The arrays got weird because of prettier.
           //Dont Judge The Dictionaries Pls
           {
             x: X1,
@@ -470,10 +504,7 @@
 
         let minDistance = Infinity;
         let distance = null;
-        let bestSx;
-        let bestEx;
-        let bestSy;
-        let bestEy;
+        let bestSx, bestEx, bestSy, bestEy;
 
         if (pathOption == "8" || pathOption == "4") {
           for (let comp1 of startNpoints) {
@@ -488,17 +519,14 @@
                 bestSy = comp1.y;
                 bestEx = comp2.x;
                 bestEy = comp2.y;
-                p.setAttribute(
-                  "d",
-                  `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`,
-                );
-                hitbox.setAttribute(
-                  "d",
-                  `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`,
-                );
               }
             }
           }
+          p.setAttribute("d", `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`);
+          hitbox.setAttribute(
+            "d",
+            `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`,
+          );
         } else {
           const angle = Math.atan2(Y2 - Y1, X2 - X1); //The angle at which 2 lies                                                    //from 1 in rad
           const sx = X1 + RADIUS * Math.cos(angle);
@@ -514,6 +542,9 @@
       //Drag Start
       function makeDraggable(node) {
         let drag = false;
+        let mouseDrag = false;
+
+        //Touch Start
         node.addEventListener("click", (e) => {
           if (pathMode) return;
           drag = !drag;
@@ -554,6 +585,47 @@
             }
           });
         });
+        //Touch End
+        //Mouse Start
+        node.addEventListener("mousedown", (e) => {
+          if (pathMode || deleteMode) return;
+          e.stopPropagation();
+
+          const circle = node.querySelector("circle");
+          const pt = svg.createSVGPoint();
+          pt.x = e.clientX;
+          pt.y = e.clientY;
+
+          const cursor = pt.matrixTransform(svg.getScreenCTM().inverse());
+          const offsetX = cursor.x - (parseFloat(circle.getAttribute("cx")) || 0);
+          const offsetY = cursor.y - (parseFloat(circle.getAttribute("cy")) || 0);
+
+          const onMove = (moveEvent) => {
+            requestAnimationFrame(() => {
+              const p = svg.createSVGPoint();
+              p.x = moveEvent.clientX;
+              p.y = moveEvent.clientY;
+              const currentCursor = p.matrixTransform(svg.getScreenCTM().inverse());
+
+              circle.setAttribute("cx", currentCursor.x - offsetX);
+              circle.setAttribute("cy", currentCursor.y - offsetY);
+
+              resolveCollisions(circle);
+              network.querySelectorAll(".path").forEach(pat => {
+                updatePath(pat.children[0], pat.children[1]);
+              });
+            });
+          };
+
+          const onUp = () => {
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
+          };
+
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("mouseup", onUp);
+        });
+        //Mouse End
       }
       makeDraggable(Snode);
       //Drag End
@@ -681,6 +753,7 @@
       Delete.addEventListener("click", (e) => {
         if (deleteMode) {
           guide.style.display = "none";
+          document.removeEventListener("click", DeleteClick);
           deleteMode = false;
           return;
         }
@@ -701,58 +774,104 @@
       });
       //Clear End
       //Zoom&Pan Start
-      let previousDist;
-      let prevMidX;
-      let prevMidY;
+      let isPanning = false;
 
-      svg.addEventListener("touchstart", (e) => {
-          if (e.touches.length == 2) {
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            previousDist = Math.sqrt(dx * dx + dy * dy);
-            prevMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-            prevMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-          }
-        }, {passive: false});
-      svg.addEventListener("touchmove", (e) => {
-          e.preventDefault();
-          if (e.touches.length == 2) {
-            const svgRect = svg.getBoundingClientRect();
-            const Mdx = e.touches[0].clientX - e.touches[1].clientX;
-            const Mdy = e.touches[0].clientY - e.touches[1].clientY;
+      let previousDist; //touch devices
+      let prevMidX, prevMidY;
 
-            const MidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-            const MidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const StartHandler = (e) => {
+        if (e.touches && e.touches.length === 2) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          previousDist = Math.sqrt(dx * dx + dy * dy);
+        }
+        prevMidX =
+          e.touches && e.touches.length > 1
+            ? (e.touches[0].clientX + e.touches[1].clientX) / 2
+            : e.clientX;
+        prevMidY =
+          e.touches && e.touches.length > 1
+            ? (e.touches[0].clientY + e.touches[1].clientY) / 2
+            : e.clientY;
+      };
 
-            const pt = svg.createSVGPoint();
-            pt.x = MidX;
-            pt.y = MidY;
-            const center = pt.matrixTransform(svg.getScreenCTM().inverse());
+      let rafPending = false;
 
-            const Mdist = Math.sqrt(Mdx * Mdx + Mdy * Mdy);
+      const DragPanHandler = (e) => {
+        if (e.type === "mousemove" && !isPanning) return;
+        const MidX =
+          e.touches && e.touches.length > 1
+            ? (e.touches[0].clientX + e.touches[1].clientX) / 2
+            : e.clientX;
+        const MidY =
+          e.touches && e.touches.length > 1
+            ? (e.touches[0].clientY + e.touches[1].clientY) / 2
+            : e.clientY;
 
-            const scaleRatio = Mdist / previousDist;
+        if (!isFinite(MidX) || !isFinite(MidY)) return;
+        const ctm = svg.getScreenCTM();
+        if (!ctm) return;
+        const point = svg.createSVGPoint();
+        point.x = MidX;
+        point.y = MidY;
+        const center = point.matrixTransform(ctm.inverse());
+        if (!center) return;
 
-            let intendedScale = scale * scaleRatio;
-            intendedScale = Math.max(0.131, Math.min(intendedScale, 9.4));
+        const worldX = (center.x - transX) / scale; // world-space anchor
+        const worldY = (center.y - transY) / scale;
 
-            let TRatio = intendedScale / scale;
+        let scaleRatio = 1;
+        let intendedScale;
 
-            transX = center.x - (center.x - transX) * TRatio;
-            transY = center.y - (center.y - transY) * TRatio;
+        if (e.touches && e.touches.length == 2) {
+          const Mdx = e.touches[0].clientX - e.touches[1].clientX;
+          const Mdy = e.touches[0].clientY - e.touches[1].clientY;
+          const Mdist = Math.sqrt(Mdx * Mdx + Mdy * Mdy);
 
-            transX += MidX - prevMidX;
-            transY += MidY - prevMidY;
+          scaleRatio = Mdist / previousDist;
 
-            scale *= TRatio;
+          previousDist = Mdist;
+        }
+        if (e.deltaY !== undefined && e.deltaY < 0) scaleRatio = 1.1;
+        else if (e.deltaY !== undefined && e.deltaY > 0) scaleRatio = 0.9;
 
-            view.setAttribute("transform", `translate(${transX}, ${transY}) scale(${scale})`);
+        intendedScale = Math.max(0.131, Math.min(scale * scaleRatio, 9.4));
 
-            previousDist = Mdist;
-            prevMidX = MidX;
-            prevMidY = MidY;
-          }
-        }, {passive: false});
+        transX = center.x - worldX * intendedScale;
+        transY = center.y - worldY * intendedScale;
+
+        transX += MidX - prevMidX;
+        transY += MidY - prevMidY;
+
+        scale = intendedScale;
+
+        if (!rafPending) {
+          rafPending = true;
+          requestAnimationFrame(() => {
+            view.setAttribute(
+              "transform",
+              `translate(${transX}, ${transY}) scale(${scale})`,
+            );
+            rafPending = false;
+          });
+        }
+
+        prevMidX = MidX;
+        prevMidY = MidY;
+      };
+
+      svg.addEventListener("touchstart", StartHandler, { passive: false });
+      svg.addEventListener("touchmove", DragPanHandler, { passive: false });
+      svg.addEventListener("mousedown", (e) => {
+        isPanning = true;
+        StartHandler(e);
+      });
+      svg.addEventListener("mousemove", DragPanHandler);
+      svg.addEventListener("mouseup", () => {
+        isPanning = false;
+      });
+      svg.addEventListener("wheel", StartHandler, { passive: false });
+      svg.addEventListener("wheel", DragPanHandler, { passive: false });
       //Zoom&Pan End
       //Settings Start
       const settingsBtn = document.getElementById("settingsBtn");
@@ -784,7 +903,8 @@
       });
 
       //Pathing Settings Start
-      const pathSettings = {   //Map to avoid repetition in updating paths
+      const pathSettings = {
+        //Map to avoid repetition in updating paths
         SP11: "4", //after selection
         SP12: "8",
         SP13: "Smooth",
@@ -816,102 +936,119 @@
       //Style Settings Start
       let stylePopShow = false;
       let ApplyStyleTo = null;
-      
-      function loadMainColorMenu() {
-      stylePopup.innerHTML = colorPresetDiv;
-      
-      const C1 = document.getElementById("col1");
-      const C2 = document.getElementById("col2");
-      const C3 = document.getElementById("col3");
-      const C4 = document.getElementById("col4");
-      const C5 = document.getElementById("colPick"); //picker
 
-      const colorOptions = [C1, C2, C3, C4, C5];
-      
       const styleAppliers = {
-        SP21: ".node",
-        SP22: ".path"
+        //for proper color menu switching
+        SP21: ".node", //global scope
+        SP22: ".path",
       };
-      
-      function SettingStyle(option) {
-        if (!styleAppliers[option.id]) {
-            col.removeEventListener("click", ApplyCol(col));
-            return;
-        }
-        
-        const isSame = ApplyStyleTo === styleAppliers[option.id];
 
-        if (isSame) {
-          stylePopShow = false;
-          ApplyStyleTo = null;
-        } else {
-          ApplyStyleTo = styleAppliers[option.id];
-          if (ApplyStyleTo == ".path") {
+      function loadMainColorMenu() {
+        stylePopup.innerHTML = colorPresetDiv;
+
+        const C1 = document.getElementById("col1");
+        const C2 = document.getElementById("col2");
+        const C3 = document.getElementById("col3");
+        const C4 = document.getElementById("col4");
+        const C5 = document.getElementById("colPick"); //picker
+
+        const colorOptions = [C1, C2, C3, C4, C5];
+
+        function SettingStyle(option) {
+          if (!styleAppliers[option.id]) {
+            col.addEventListener("click", colPresEvents(col));
+            return;
+          }
+
+          const isSame = ApplyStyleTo === styleAppliers[option.id];
+
+          if (isSame) {
+            stylePopShow = false;
+            ApplyStyleTo = null;
+          } else {
+            ApplyStyleTo = styleAppliers[option.id];
+            if (ApplyStyleTo == ".path") {
               C1.setAttribute("fill", "#FFFFFF");
               C2.setAttribute("fill", "#FFDFEE");
               C3.setAttribute("fill", "#4F4550");
               C4.setAttribute("fill", "#323931");
-              colorOptions.forEach(ColP=> {
+              colorOptions.forEach((ColP) => {
                 ColP.classList.remove("colorSelected");
               });
-          }
-          else {
+            } else {
               C1.setAttribute("fill", "#73CFFF");
               C2.setAttribute("fill", "#9163F2");
               C3.setAttribute("fill", "#E30B45");
               C4.setAttribute("fill", "#FFCB00");
-              colorOptions.forEach(ColN => {
+              colorOptions.forEach((ColN) => {
                 ColN.classList.remove("colorSelected");
               });
+            }
+            stylePopShow = true;
           }
-          stylePopShow = true;
+          stylePopup.style.display = stylePopShow ? "block" : "none";
         }
-        stylePopup.style.display = stylePopShow ? "block" : "none";
-      }
-      
-      for (let funcLoopB of optsArr2) {
-        funcLoopB.onclick = () => {
-          funcLoopB.classList.toggle("selected");
-          SettingStyle(funcLoopB);
-          optsArr2.forEach((opt) => {
-            if (opt.id === funcLoopB.id) return;
-            opt.classList.remove("selected");
-          });
+
+        for (let funcLoopB of optsArr2) {
+          funcLoopB.onclick = () => {
+            funcLoopB.classList.toggle("selected");
+            SettingStyle(funcLoopB);
+            optsArr2.forEach((opt) => {
+              if (opt.id === funcLoopB.id) return;
+              opt.classList.remove("selected");
+            });
+          };
         }
-      }
-      
-      for (let col of colorOptions) {
-        col.addEventListener("click", (e) => {
+
+        const colPresEvents = (arg) => (e) => {
           e.stopPropagation();
-          if (col == C5) {
-              loadColorPickerMenu();
-          }                                          //Selection and 
-          else {                                     //Deslection Logic broken
-          col.classList.add("colorSelected");
-          ApplyCol(col);
-          colorOptions.forEach(coul => {
-            if (coul == col) return;
-            coul.classList.remove("colorSelected"); //End of comment
-          });
+          if (arg == C5) {
+            loadColorPickerMenu();
+          } //no error catching since arg will always be the desired input
+          else {
+            arg.classList.add("colorSelected");
+            ApplyCol(arg);
+            colorOptions.forEach((coul) => {
+              if (coul == arg) return;
+              coul.classList.remove("colorSelected");
+            });
           }
-        });
-      }
+        };
+
+        for (let col of colorOptions) {
+          col.addEventListener("click", colPresEvents(col));
+        }
+        //BackBtn proof
+        if (ApplyStyleTo === ".path") {
+          C1.setAttribute("fill", "#FFFFFF");
+          C2.setAttribute("fill", "#FFDFEE");
+          C3.setAttribute("fill", "#4F4550");
+          C4.setAttribute("fill", "#323931");
+        } else if (ApplyStyleTo === ".node") {
+          C1.setAttribute("fill", "#73CFFF");
+          C2.setAttribute("fill", "#9163F2");
+          C3.setAttribute("fill", "#E30B45");
+          C4.setAttribute("fill", "#FFCB00");
+        }
       }
       loadMainColorMenu();
-      
+
       function loadColorPickerMenu() {
         stylePopup.innerHTML = colorPickerDiv;
         const applyColBtn = document.getElementById("applyCusCol");
         applyColBtn.onclick = () => {
           const HexColor = document.getElementById("hexColIn").value;
-          network.querySelectorAll(ApplyStyleTo).forEach(ele => {
           ApplyCol(HexColor);
-        });
-        }
+        };
+        const HexColIn = document.getElementById("hexColIn");
+        HexColIn.oninput = () => {
+          const colFeedback = document.getElementById("colorShow");
+          colFeedback.setAttribute("fill", HexColIn.value);
+        };
         const backBtn = document.getElementById("backBtn");
         backBtn.onclick = () => {
           loadMainColorMenu();
-        }
+        };
       }
 
       function ApplyCol(color) {
@@ -922,8 +1059,9 @@
           if (ApplyStyleTo == ".path") PathCol = Color;
           else if (ApplyStyleTo == ".node") NodeCol = Color;
         }
-        network.querySelectorAll(ApplyStyleTo).forEach(el => {
-          if (ApplyStyleTo == ".path") el.children[0].setAttribute("stroke", PathCol);
+        network.querySelectorAll(ApplyStyleTo).forEach((el) => {
+          if (ApplyStyleTo == ".path")
+            el.children[0].setAttribute("stroke", PathCol);
           else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
         });
       }
