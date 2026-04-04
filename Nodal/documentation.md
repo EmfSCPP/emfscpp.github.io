@@ -63,7 +63,7 @@ Issus - The UI for the color picker is ugly
 
 //Timezone IST
 April 3rd 13:59 - 14:00 {
-  line 813, rAF requests and animation fram frame for that function to the browser, and the browser returns the frame, and it is displayed. this is smoother than trying to execute 8000 changes every second(8000Hz mice).
+  line 813, rAF requests and animation frame by frame for that function to the browser, and the browser returns the frame, and it is displayed. this is smoother than trying to execute 8000 changes every second(8000Hz mice).
 }
 April 3rd 16:06 - 16:07 {
   if in "Select End Node" state(clickTwo, path making), cancelling will not remove the clickTwo event listener, hence, event listener stacking(issue) occurs
@@ -99,12 +99,15 @@ NodalV4 -
    decided to extend V4 by making movement buttery smooth on desktop
    fixing Bug1
  }
- April 3rd 17:18 - {
+//Note: the time shown is the time taken to write
+//           the message, not how much time a task
+//           a task took
+ April 3rd 17:18 - 17:19 {
    fixed drag stuttering, using requestAnimationFrame to smoothly animate the
    position of the node instead of instantly snapping it to a fine pointer
  }
  -Bug1 is also fixed, dragging should be smoother
- April 3rd 19:09 - {
+ April 3rd 19:09 - 19:10 {
    fixed style pop ups postion on desktop
    was out of bounds because of two css
    declarations
@@ -112,3 +115,13 @@ NodalV4 -
  
  Issue - no keyboard shortcuts
  Issue - Collision resolution limitation - nodes pushing nodes into other nodes
+
+April 4th 10:24 - 10:26 {
+   Deciding to use C++ WASM (Emscripten) for logic
+   due to its speed.
+}
+April 4th 10:26 - 10:27 {
+   Style popups out of bounds issue on desktop
+   was not actually fixed
+   Bug
+}
