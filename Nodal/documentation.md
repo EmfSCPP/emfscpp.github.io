@@ -1,4 +1,4 @@
- # READ IN RAW MODE
+# READ IN RAW MODE
  
  NodalV1 -
 -The first version of the website
@@ -100,8 +100,8 @@ NodalV4 -
    fixing Bug1
  }
 //Note: the time shown is the time taken to write
-//           the message, not how much time a task
-//           a task took
+//      the message, not how much time a task
+//      a task took
  April 3rd 17:18 - 17:19 {
    fixed drag stuttering, using requestAnimationFrame to smoothly animate the
    position of the node instead of instantly snapping it to a fine pointer
@@ -125,3 +125,68 @@ April 4th 10:26 - 10:27 {
    was not actually fixed
    Bug
 }
+
+//Timezone IST
+April 7th 18:45 - 18:49 {
+   NodalV5 is going to take much longer time than usual versions, since a lot of
+   architectural changes are being made to accomodate the new system, and
+   includes things that are alien to me.
+   I do want to learn as well as get the code working, so i cant entirely pass code
+   over to AI. I dont like shipping half-finished features either. ill be honest,
+   i use AI. just wait, NodalV5 will come.
+}
+April 7th 20:05 - 20:06:55 {
+   The major feature ive been working on is good, it just has one minor issue i can
+   fix tomorrow, since its past my wind down time.
+}
+April 8th 7:20 - 7:21 {
+   Minor issues will be fixed today. i also plan to add smooth transitions.
+}
+April 8th 10:15 - 10:16 {
+   i believe minor issues have been fixed. I am adding smooth transitions, i have
+   added functionality to a few features.
+   I also believe that requestAnimationFrame for smoothness is working
+}
+April 8th 14:03 - 14:04 {
+   added a small css transition after a few hours of procrastinating
+}
+April 8th 15:05 - 15:06 {
+   i believe i have finished all the functional components of NodalV5
+   i believe it is time to add smooth transitions
+}
+April 8th 15:13 - 15:14 {
+   Unfortunately, since i worked on a major feature, that took me longer than expected
+   some issues may not be fixed in NodalV5, like Collision resolution limitation
+}
+April 8th 15:21 - 15:23 {
+   Some pieces of code(especially in main.css) is in an AI code section, or
+   there is a comment that says that the code is written by AI. i would like
+   to clarify that i do understand the code it writes, mostly. i want to learn
+   as well as develop my project, guilt would creep in without understanding.
+}
+April 8th 16:16 - 16:18 {
+   NodalV5's functionality, i believe, finished. After a few hours, some CSS
+   and some UI/UX features i can push it to my repository and deploy it. 
+   transitions have been added, and a few other features that will be mentioned
+   in the update.
+   Edited: 16:27 - 16:29
+}
+April 8th 18:28 - 18:29 {
+   It is done. NodalV5 will be up in a few minutes or hours
+}
+
+NodalV5 -
+-Added Layering
+  -Layer Menu on the side
+  -Add layers
+  -Remove layers
+-Added localStorage persistence
+  -Your work will be saved to localStorage and loaded
+    in another session, your preferences will also be saved.
+-Added Smooth Transitions
+  -Bounce in node animation
+  -Grow out animation for paths
+  -Shrink path deletion animation
+  -Bounce out node deletion animation
+  -Layer add animation
+   Button slides in

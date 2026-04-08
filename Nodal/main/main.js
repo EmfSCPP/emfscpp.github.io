@@ -1,289 +1,30 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
-      rel="stylesheet"
-    />
-    <title>Nodal</title>
-
-    <style>
-      :root {
-        --bg: #0f172a;
-        --card: #1e293b;
-        --accent: #38bdf8;
-        --text: #f8fafc;
-      }
-
-      * {
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      body {
-        margin: 0;
-        font-family: "Jetbrains Mono", Monospace, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-      }
-
-      .container {
-        background: var(--card);
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        max-width: 560px;
-        width: 90%;
-        text-align: center;
-      }
-
-      h1 {
-        text-align: left;
-        padding-left: 25px;
-        font-size: 3rem;
-        color: #001021;
-        border: 2px solid black;
-        border-radius: 1.5rem;
-        background-color: #e0fffa;
-      }
-
-      .guide {
-        display: none;
-        border: 2px solid white;
-        border-radius: 20px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-      }
-
-      #mainSvg {
-        touch-action: none;
-        width: 100%;
-      }
-
-      .pathHB {
-        pointer-events: stroke;
-      }
-
-      .controls {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 20px;
-        width: 100%;
-      }
-
-      button {
-        background: var(--accent);
-        margin-top: 30px;
-        color: #000;
-        border: none;
-        padding: 0.75rem 1rem;
-        border-radius: 20px;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.1s;
-      }
-
-      button:active {
-        transform: scale(0.95);
-      }
-
-      .settings {
-        position: relative;
-        display: inline-block;
-      }
-
-      #settingsBtn {
-        font-size: 20px;
-      }
-
-      .settingPop1 {
-        display: none;
-        background-color: #d8e5ff;
-        color: black;
-        position: absolute;
-        margin-left: 20px;
-        padding: 10px;
-        left: 100%;
-        border: 2px solid black;
-        border-radius: 8px;
-        width: 20vw;
-      }
-
-      .settingPop2 {
-        display: none;
-        background-color: #d8e5ff;
-        color: black;
-        position: absolute;
-        margin-right: 20px;
-        padding: 10px;
-        right: 100%;
-        border: 2px solid black;
-        border-radius: 8px;
-        width: 20vw;
-      }
-
-      #stylePopup {
-        display: none;
-        background-color: #d8e5ff;
-        color: black;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: unset;
-        margin-top: 5.5px;
-        padding: 10px;
-        border: 2px solid black;
-        border-radius: 8px;
-        width: 100%;
-        box-sizing: border-box;
-        text-align: center;
-        font-size: 0.5rem;
-      }
-
-      #settingPop1 div,
-      #settingPop2 div,
-      #stylePopup div {
-        padding: 6px 12px;
-        cursor: pointer;
-        border-radius: 8px;
-      }
-
-      #stylePopup svg {
-        height: 60px;
-        width: 100%;
-      }
-
-      #backBtn {
-        padding: 4px;
-      }
-
-      /*AI Code*/
-      #hexColIn {
-        background: none;
-        color: #73cfff;
-        border-radius: 6px;
-        width: 15.5vw;
-        outline: none;
-        transition: border-color 0.15s;
-      }
-
-      #applyCusCol {
-        border: none;
-        border-radius: 8px;
-        margin-top: 7.5px;
-        padding: 10px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: background 0.15s;
-      }
-      /*AI Code*/
-
-      .selected {
-        transition: 0.25s;
-        background-color: #e9fbff;
-        color: #000;
-      }
-      .colorSelected {
-        transition: 0.2s;
-        stroke: #ffffff;
-        stroke-width: 5;
-      }
-
-      @media (pointer: fine) {
-        h1 {
-          font-size: 2rem;
-        }
-        .settingPop1,
-        .settingPop2,
-        #stylePopup {
-          font-size: 0.5rem;
-        }
-        .container {
-          height: 85vh;
-          display: flex;
-          flex-direction: column;
-        }
-        .buttons {
-          margin-top: auto;
-        }
-        #mainSvg {
-          height: 60vh;
-        }
-      }
-
-      @media (orientation: landscape) {
-        .container {
-          max-width: 1700px;
-        }
-        svg {
-          height: 60vh;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Editor</h1>
-      <div class="settings">
-        <button id="settingsBtn">&#9881;</button>
-        <div class="settingPop1" id="settingPop1">
-          <div id="SP1MP"><strong>Pathing</strong></div>
-          <div id="SP1Menu">
-            <div id="SP11">4</div>
-            <div id="SP12" class="selected">8</div>
-            <div id="SP13">Smooth</div>
-          </div>
-        </div>
-        <div class="settingPop2" id="settingPop2">
-          <div id="SP2MP"><strong>Style</strong></div>
-          <div id="SP2Menu">
-            <div id="SP21">Nodes</div>
-            <div id="SP22">Paths</div>
-          </div>
-          <div id="stylePopup"></div>
-        </div>
-      </div>
-      <svg id="mainSvg" viewBox="-400 -400 800 800">
-        <g id="view">
-          <g id="network">
-            <g id="node" class="node">
-              <circle r="40" fill="#73CFFF" class="node" />
-            </g>
-          </g>
-        </g>
-      </svg>
-      <p id="guide" class="guide"></p>
-      <div class="buttons">
-        <button id="addBtn">+</button>
-        <button id="deleteBtn">-</button>
-        <button id="pathBtn">~</button>
-        <button id="clearBtn">&#10005;</button>
-      </div>
-    </div>
-
-    <script>
-      const Snode = document.getElementById("node"); //Snode = Start Node
       const guide = document.getElementById("guide");
       const svg = document.querySelector("#mainSvg");
+      const view = document.getElementById("view");
       const network = document.getElementById("network");
       const stylePopup = document.getElementById("stylePopup"); // used in style settings
+      
+      //State Management Start
+      function getState() {
+        const Funcstate = JSON.parse(localStorage.getItem("global-state")) || { settings: [], nodes: [], paths: [] }
+        return Funcstate;
+      }
+      let state = getState();
+      //State Management End
+      
+      let layer = 1;
+      let userOnLayer = 1;
 
       let scale = 1;
       let transX = 0;
       let transY = 0;
-
+      
+      let nodeCount = 1;
+      let pathCount = 1;
       let NodeCol = "#73CFFF"; //Default Node color
       let PathCol = "#FFFFFF"; //Default Path color
 
-      const RADIUS = 40;
+      const RADIUS = 40
 
       //HTML Lines Start
       // prettier-ignore
@@ -307,8 +48,7 @@
               <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
             </svg>`
       // prettier-ignore
-      const colorPickerDiv = `<p><b>Color</b></p>
-                              <svg viewBox="0 0 60 40">
+      const colorPickerDiv = `<svg id="colorFeed" viewBox="0 0 60 40">
                               <rect id="colorShow" x="0" y="0" width="60" height="40" rx="15" ry="15"/>
                               </svg>
                               <input id="hexColIn"/>
@@ -320,7 +60,6 @@
       const Path = document.getElementById("pathBtn");
       let NodeStart = null;
       let NodeEnd = null;
-      let pathCount = 1;
       let pathMode = false;
       let pathOption = "8";
 
@@ -366,7 +105,7 @@
         }
       };
 
-      function drawPath(Start, End) {
+      function drawPath(Start, End, isPathLoading = false) {
         if (Start == End) return;
         const path = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -379,12 +118,6 @@
         //PG = Path Group
         const PG = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-        let np = 1;
-        while (network.querySelector("#path" + np)) {
-          np++;
-        }
-        pathCount = np;
-
         PG.setAttribute("id", "path" + pathCount);
         PG.classList.add("path");
         path.classList.add("pathV");
@@ -394,6 +127,7 @@
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("data-start", NodeStart.id);
         path.setAttribute("data-end", NodeEnd.id);
+        PG.setAttribute("data-on-layer", userOnLayer);
         pHitbox.classList.add("pathHB");
         pHitbox.setAttribute("stroke", "transparent");
         pHitbox.setAttribute("stroke-width", "10");
@@ -402,6 +136,20 @@
         PG.appendChild(pHitbox);
         network.appendChild(PG);
         updatePath(path, pHitbox);
+        
+        if (!isPathLoading) {
+          const data = {
+            id: "path" + pathCount,
+            x: NodeStart.id,
+            y: NodeEnd.id,
+            layer: userOnLayer,
+            color: PathCol,
+            draw: ""
+          }
+          state.paths.push(data)
+          pathCount++;
+        }
+        JSONSave();
       }
 
       function updatePath(p, hitbox) {
@@ -420,81 +168,33 @@
           parseFloat(end.querySelector("circle").getAttribute("cx")) || 0;
         const Y2 =
           parseFloat(end.querySelector("circle").getAttribute("cy")) || 0;
-
-        const startNpoints = [
-          //The arrays got weird because of prettier.
-          //Dont Judge The Dictionaries Pls
-          {
-            x: X1,
-            y: Y1 + RADIUS,
-          },
-          {
-            x: X1,
-            y: Y1 - RADIUS,
-          },
-          {
-            x: X1 - RADIUS,
-            y: Y1,
-          },
-          {
-            x: X1 + RADIUS,
-            y: Y1,
-          },
+        
+        // prettier-ignore
+        const startNpoints = [ //Dont Judge The Dictionaries Pls
+          {x: X1, y: Y1 + RADIUS},
+          {x: X1, y: Y1 - RADIUS},
+          {x: X1 - RADIUS, y: Y1},
+          {x: X1 + RADIUS, y: Y1}
         ];
-
+        
+        // prettier-ignore
         const EndNpoints = [
-          {
-            x: X2,
-            y: Y2 + RADIUS,
-          },
-          {
-            x: X2,
-            y: Y2 - RADIUS,
-          },
-          {
-            x: X2 - RADIUS,
-            y: Y2,
-          },
-          {
-            x: X2 + RADIUS,
-            y: Y2,
-          },
+          {x: X2, y: Y2 + RADIUS},
+          {x: X2, y: Y2 - RADIUS},
+          {x: X2 - RADIUS, y: Y2},
+          {x: X2 + RADIUS, y: Y2}
         ];
 
         if (pathOption == "8") {
-          startNpoints.push({
-            x: X1 + RADIUS * 0.7071,
-            y: Y1 + RADIUS * 0.7071,
-          });
-          startNpoints.push({
-            x: X1 - RADIUS * 0.7071,
-            y: Y1 + RADIUS * 0.7071,
-          });
-          startNpoints.push({
-            x: X1 + RADIUS * 0.7071,
-            y: Y1 - RADIUS * 0.7071,
-          });
-          startNpoints.push({
-            x: X1 - RADIUS * 0.7071,
-            y: Y1 - RADIUS * 0.7071,
-          });
+          startNpoints.push({x: X1 + RADIUS * 0.7071, y: Y1 + RADIUS * 0.7071});
+          startNpoints.push({x: X1 - RADIUS * 0.7071, y: Y1 + RADIUS * 0.7071});
+          startNpoints.push({x: X1 + RADIUS * 0.7071, y: Y1 - RADIUS * 0.7071});
+          startNpoints.push({x: X1 - RADIUS * 0.7071, y: Y1 - RADIUS * 0.7071});
 
-          EndNpoints.push({
-            x: X2 + RADIUS * 0.7071,
-            y: Y2 + RADIUS * 0.7071,
-          });
-          EndNpoints.push({
-            x: X2 - RADIUS * 0.7071,
-            y: Y2 + RADIUS * 0.7071,
-          });
-          EndNpoints.push({
-            x: X2 + RADIUS * 0.7071,
-            y: Y2 - RADIUS * 0.7071,
-          });
-          EndNpoints.push({
-            x: X2 - RADIUS * 0.7071,
-            y: Y2 - RADIUS * 0.7071,
-          });
+          EndNpoints.push({x: X2 + RADIUS * 0.7071, y: Y2 + RADIUS * 0.7071});
+          EndNpoints.push({x: X2 - RADIUS * 0.7071, y: Y2 + RADIUS * 0.7071});
+          EndNpoints.push({x: X2 + RADIUS * 0.7071, y: Y2 - RADIUS * 0.7071});
+          EndNpoints.push({x: X2 - RADIUS * 0.7071, y: Y2 - RADIUS * 0.7071});
         }
 
         let minDistance = Infinity;
@@ -518,18 +218,26 @@
             }
           }
           p.setAttribute("d", `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`);
+          p.setAttribute("data-x1", bestSx);
+          p.setAttribute("data-y1", bestSy);
+          p.setAttribute("data-x2", bestEx);
+          p.setAttribute("data-y2", bestEy);
           hitbox.setAttribute(
             "d",
             `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`,
           );
         } else {
-          const angle = Math.atan2(Y2 - Y1, X2 - X1); //The angle at which 2 lies                                                    //from 1 in rad
+          const angle = Math.atan2(Y2 - Y1, X2 - X1); //The angle at which 2 lies from 1 in rad
           const sx = X1 + RADIUS * Math.cos(angle);
           const sy = Y1 + RADIUS * Math.sin(angle); //Calculating the positions
           const ex = X2 - RADIUS * Math.cos(angle); //of points
           const ey = Y2 - RADIUS * Math.sin(angle);
 
           p.setAttribute("d", `M ${sx} ${sy} L ${ex} ${ey}`);
+          p.setAttribute("data-x1", bestSx);
+          p.setAttribute("data-y1", bestSy);
+          p.setAttribute("data-x2", bestEx);
+          p.setAttribute("data-y2", bestEy);
           hitbox.setAttribute("d", `M ${sx} ${sy} L ${ex} ${ey}`);
         }
       }
@@ -541,7 +249,7 @@
 
         //Touch Start
         node.addEventListener("click", (e) => {
-          if (pathMode) return;
+          if (pathMode || deleteMode) return;
           drag = !drag;
           const circle = node.querySelector("circle");
 
@@ -563,12 +271,9 @@
           const pt = svg.createSVGPoint();
           pt.x = e.touches[0].clientX;
           pt.y = e.touches[0].clientY;
-          const finger = pt.matrixTransform(circle.getScreenCTM().inverse());
+          const finger = pt.matrixTransform(network.getScreenCTM().inverse());
 
-          circle.setAttribute("cx", finger.x);
-          circle.setAttribute("cy", finger.y);
-
-          resolveCollisions(node.querySelector("circle"));
+          requestAnimationFrame( () => Sdrag(circle, finger.x, finger.y));
 
           network.querySelectorAll(".pathV").forEach((p) => {
             if (
@@ -580,9 +285,16 @@
             }
           });
         });
+        node.addEventListener("touchend", () => {
+          const Ndata = state.nodes.find(n => n.id === node.id)
+          if (!Ndata) return;
+          Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
+          Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
+          JSONSave();
+        })
         //Touch End
-        //Mouse Start
-        node.addEventListener("mousedown", (e) => {
+        //Mouse Start     
+        node.addEventListener("mousemove", (e) => {
           if (pathMode || deleteMode) return;
           e.stopPropagation();
 
@@ -591,38 +303,33 @@
           pt.x = e.clientX;
           pt.y = e.clientY;
 
-          const cursor = pt.matrixTransform(svg.getScreenCTM().inverse());
-          const offsetX = cursor.x - (parseFloat(circle.getAttribute("cx")) || 0);
-          const offsetY = cursor.y - (parseFloat(circle.getAttribute("cy")) || 0);
+          const cursor = pt.matrixTransform(network.getScreenCTM().inverse());
 
-          const onMove = (moveEvent) => {
-            requestAnimationFrame(() => {
-              const p = svg.createSVGPoint();
-              p.x = moveEvent.clientX;
-              p.y = moveEvent.clientY;
-              const currentCursor = p.matrixTransform(svg.getScreenCTM().inverse());
-
-              circle.setAttribute("cx", currentCursor.x - offsetX);
-              circle.setAttribute("cy", currentCursor.y - offsetY);
-
-              resolveCollisions(circle);
-              network.querySelectorAll(".path").forEach(pat => {
-                updatePath(pat.children[0], pat.children[1]);
-              });
-            });
-          };
-
-          const onUp = () => {
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-          };
-
-          window.addEventListener("mousemove", onMove);
-          window.addEventListener("mouseup", onUp);
+          requestAnimationFrame( () => Sdrag(circle, cursor.x, cursor.y));
         });
+          
+          node.addEventListener("mouseup", () => {
+            const Ndata = state.nodes.find(n => n.id === node.id)
+            if (!Ndata) return;
+            Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
+            Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
+            JSONSave();
+          });
         //Mouse End
       }
-      makeDraggable(Snode);
+      function Sdrag(ele, x, y) {
+        if (ele && typeof ele.setAttribute === "function") {
+        ele.setAttribute("cx", x);
+        ele.setAttribute("cy", y);
+
+        resolveCollisions(ele);
+        network.querySelectorAll(".path").forEach(pat => {
+          updatePath(pat.children[0], pat.children[1]);
+        });
+        
+        requestAnimationFrame(Sdrag);
+        }
+      }
       //Drag End
       //Collision Start
       const PADDING = 2;
@@ -654,6 +361,12 @@
 
             other.setAttribute("cx", X);
             other.setAttribute("cy", Y);
+            
+            const otherD = state.nodes.find(n => n.id === other.parentElement.id);
+            if (otherD) {
+              otherD.x = X;
+              otherD.y = Y;
+            }
 
             const otherGroup = other.parentElement;
             network.querySelectorAll(".pathV").forEach((p) => {
@@ -667,11 +380,11 @@
             });
           }
         }
+        JSONSave();
       }
       //Collision End
       //Add Start
       const Add = document.getElementById("addBtn");
-      let nodeCount = 1;
       Add.addEventListener("click", () => {
         const NewNode = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -681,14 +394,9 @@
         const NNG = document.createElementNS("http://www.w3.org/2000/svg", "g");
         NewNode.setAttribute("r", "40");
         NewNode.setAttribute("fill", NodeCol);
+        NewNode.setAttribute("data-on-layer", userOnLayer)
         NewNode.setAttribute("cx", -transX / scale);
         NewNode.setAttribute("cy", -transY / scale);
-
-        let nn = 1;
-        while (network.querySelector("#node" + nn)) {
-          nn++;
-        }
-        nodeCount = nn;
 
         NNG.setAttribute("id", "node" + nodeCount);
         NNG.classList.add("node");
@@ -696,6 +404,16 @@
         NNG.appendChild(NewNode);
         network.appendChild(NNG);
         makeDraggable(NNG);
+        const data = {
+          id: "node" + nodeCount,
+          x: -transX / scale,
+          y: -transY / scale,
+          layer: userOnLayer,
+          color: NodeCol
+        }
+        state.nodes.push(data);
+        nodeCount++;
+        JSONSave();
       });
       //Add End
       //Delete Start
@@ -706,42 +424,36 @@
         if (e.target.matches(".node") && deleteMode) {
           const nodeGroup = e.target.parentElement;
           const nodeId = nodeGroup.id;
+          nodeGroup.classList.add("deletingelement");
           network.querySelectorAll(".pathV").forEach((p) => {
-            if (
-              p.getAttribute("data-start") === nodeId ||
-              p.getAttribute("data-end") === nodeId
-            ) {
-              p.parentElement.remove();
-              let pn = 1;
-              while (network.querySelector("#path" + pn)) {
-                pn++;
-              }
-              pathCount = pn;
-            }
-          });
-          nodeGroup.remove();
-          guide.style.display = "none";
-          deleteMode = !deleteMode;
-          let n = 1;
-          while (network.querySelector("#node" + n)) {
-            n++;
-          }
-          nodeCount = n;
+              if (
+                p.getAttribute("data-start") === nodeId ||
+                p.getAttribute("data-end") === nodeId
+              ) p.parentElement.classList.add("deletingelement");
+            });
+          setTimeout( () => {
+            network.querySelectorAll(".pathV").forEach((p) => {
+              if (
+                p.getAttribute("data-start") === nodeId ||
+                p.getAttribute("data-end") === nodeId
+              ) p.parentElement.remove();
+            });
+            state.nodes = state.nodes.filter(n => !(n.id === nodeId && n.layer === userOnLayer))
+            state.paths = state.paths.filter(p => p.x !== nodeId && p.y !== nodeId);
+            nodeGroup.remove();
+            guide.style.display = "none";
+            deleteMode = !deleteMode;
+          }, 300);
         }
-        let n = 1;
-        while (network.querySelector("#node" + n)) {
-          n++;
-        }
-        nodeCount = n;
         if (e.target.matches(".pathHB") && deleteMode) {
-          e.target.parentElement.remove();
-          guide.style.display = "none";
-          deleteMode = !deleteMode;
-          let p = 1;
-          while (network.querySelector("#path" + p)) {
-            p++;
-          }
-          pathCount = p;
+          const pg = e.target.parentElement;
+          pg.classList.add("deletingelement");
+          setTimeout( () => {
+            state.paths = state.paths.filter(p => !(p.id == pg.id && p.layer == userOnLayer))
+            pg.remove();
+            guide.style.display = "none";
+            deleteMode = !deleteMode;
+          }, 300);
         }
       };
 
@@ -763,11 +475,139 @@
       clearBtn.addEventListener("click", () => {
         if (confirm("Clear all nodes and paths?")) {
           network.innerHTML = "";
+          localStorage.clear();
+          state = { settings: [], nodes: [], paths: [] };
           nodeCount = 1;
           pathCount = 1;
         }
       });
       //Clear End
+      //Layering Start
+      const layerMenu = document.querySelector(".layerBtns");
+      const newLayerMenu = document.querySelector(".createdLayerBtns");
+      
+      const layer1Btn = document.getElementById("layer1Btn");
+      const layer2Btn = document.getElementById("layer2Btn");
+      const layerAddBtn = document.getElementById("layerAddBtn");
+      const layerRemBtn = document.getElementById("layerRemBtn");
+      
+      let layerBtnCount = 2;
+      let layerButtons = {};
+      
+      let layerDeleteMode = false;
+      
+      layer1Btn.onclick = () => {
+        if (userOnLayer == 1) return;
+        document.querySelectorAll(".SLBTN").forEach(b => {
+          b.classList.remove("SLBTN");
+        });
+        layer1Btn.classList.add("SLBTN");
+        view.dataset.currentLayer = 1;
+        JSONSave();
+        userOnLayer = 1;
+        JSONLoad("loadlayer");
+      }
+      layer2Btn.onclick = () => {
+        if (userOnLayer == 2) return;
+        document.querySelectorAll(".SLBTN").forEach(b => {
+          b.classList.remove("SLBTN");
+        });
+        layer2Btn.classList.add("SLBTN");
+        view.dataset.currentLayer = 2;
+        JSONSave();
+        userOnLayer = 2;
+        JSONLoad("loadlayer");
+      }
+      
+      function DeletionAndRebuild(layerNum) {
+        state.nodes = state.nodes.filter(n => n.layer !== layerNum);
+        state.nodes.forEach(n => {
+          if (n.layer > layerNum) n.layer -= 1;
+        });
+        state.paths = state.paths.filter(p => p.layer !== layerNum);
+        state.paths.forEach(p => {
+          if (p.layer > layerNum) p.layer -= 1;
+        });
+        const target = layerBtnCount - 1;
+        layerBtnCount = 2;
+        newLayerMenu.innerHTML = "";
+        for (let loop = 2; loop < target; loop++) {
+          const rebuiltLayerBtn = newLayerBtn();
+        }
+        JSONSave();
+        JSONLoad();
+        if (layerBtnCount == 2) {
+          layerRemBtn.classList.remove("LRBT");
+          layerRemBtn.classList.add("selected-layerbtn");
+        }
+        if (layerBtnCount < 8) {
+          layerAddBtn.classList.remove("selected-layerbtn");
+          layerAddBtn.classList.add("LABT");
+          }
+        layerDeleteMode = false;
+      }
+      
+      function NewLayerBtnFuncAdd(ele, num) {
+        ele.addEventListener("click", () => {
+          if (layerDeleteMode) {
+            DeletionAndRebuild(num);
+            guide.textContent = "";
+            guide.style.display = "none";
+            return;
+          }
+          if (userOnLayer == num) return;
+          document.querySelectorAll(".SLBTN").forEach(b => {
+            b.classList.remove("SLBTN");
+          });
+          ele.classList.add("SLBTN");
+          view.dataset.currentLayer = num
+          JSONSave();
+          userOnLayer = num;
+          JSONLoad("loadlayer");
+        });
+      }
+      
+      function newLayerBtn() {
+        layerBtnCount++
+        const newButton = document.createElement("button");
+        newButton.innerText = layerBtnCount;
+        newButton.dataset.layerProp = layerBtnCount;
+        NewLayerBtnFuncAdd(newButton, layerBtnCount);
+        
+        layerButtons["layer" + layerBtnCount + "Btn"] = newButton;
+        
+        newLayerMenu.appendChild(newButton);
+        return newButton;
+      }
+      
+      layerAddBtn.onclick = () => {
+        if (layerDeleteMode) return;
+        if (layerBtnCount >= 8) {
+          layerBtnCount = 8;
+          return;
+        }
+        if (layerBtnCount >= 2) {
+          layerRemBtn.classList.remove("selected-layerbtn");
+          layerRemBtn.classList.add("LRBT");
+        }
+        const newBtn = newLayerBtn();
+        if (layerBtnCount === 8) {
+          layerAddBtn.classList.add("selected-layerbtn");
+        }
+      }
+      
+      layerRemBtn.onclick = () => {
+        layerDeleteMode = !layerDeleteMode;
+        if (layerDeleteMode) {
+          guide.style.display = "block";
+          guide.textContent = "Select Layer To Remove";
+        }
+        else {
+          guide.style.display = "none";
+          guide.textContent = "";
+        }
+      }
+      //Layering End
       //Zoom&Pan Start
       let isPanning = false;
 
@@ -775,7 +615,7 @@
       let prevMidX, prevMidY;
 
       const StartHandler = (e) => {
-        if (e.touches && e.touches.length === 2) {
+      if (e.touches && e.touches.length === 2) {
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
           previousDist = Math.sqrt(dx * dx + dy * dy);
@@ -857,9 +697,9 @@
 
       svg.addEventListener("touchstart", StartHandler, { passive: false });
       svg.addEventListener("touchmove", DragPanHandler, { passive: false });
-      svg.addEventListener("mousedown", (e) => {
+      svg.addEventListener("mousedown", () => {
         isPanning = true;
-        StartHandler(e);
+        StartHandler;
       });
       svg.addEventListener("mousemove", DragPanHandler);
       svg.addEventListener("mouseup", () => {
@@ -1063,6 +903,109 @@
       //Style Settings End
 
       //Settings End
-    </script>
-  </body>
-</html>
+      //State Storage Start
+      //state is defined at the top
+      let isLoading = false;
+      
+      function JSONupdate(inputEl, elType, stateObject) {
+        const data = {
+          x: inputEl.getAttribute("cx"),
+          y: inputEl.getAttribute("cy"),
+          color: inputEl.getAttribute(elType == "nodes" ? "fill" : "stroke"),
+          id: inputEl.parentElement.getAttribute("id"),
+          layer: inputEl.getAttribute("data-on-layer")
+        }
+        if (elType == "paths") {
+          data.layer = inputEl.parentElement.dataset.onLayer; //IF DEPRECATED
+          data.x = inputEl.getAttribute("data-start"); // x and y for from and to
+          data.y = inputEl.getAttribute("data-end");
+          data.draw = inputEl.getAttribute("d");
+        }
+        if (elType == "setting") {
+          data.nodecolor = document.querySelector("circle").getAttribute("fill");
+          data.pathcolor = document.querySelector(".pathV").getAttribute("stroke");
+        }
+        
+        stateObject[elType] = stateObject[elType].filter(el => el.id !== data.id);
+        stateObject[elType].push(data);
+      }
+      
+      function JSONSave() {
+		  if (isLoading) return;
+		  let localState = state;
+		  
+		  localState.settings = [{nodecolor: NodeCol, pathcolor: PathCol, nodecount: nodeCount, pathcount: pathCount, pathopt: pathOption}]
+		  
+      localStorage.setItem("global-state", JSON.stringify(localState));
+      }
+      function JSONLoad(type) { //loadfile or loadlayer
+		   isLoading = true;
+           state = getState();
+           if (type == "loadfile") {
+             console.log("testing");
+           }
+           
+           network.innerHTML = "";
+           const onLayerNodes = state.nodes.filter(n => parseInt(n.layer) == userOnLayer);
+           const onLayerPaths = state.paths.filter(p => parseInt(p.layer) == userOnLayer);
+           onLayerNodes.forEach(n => {
+			       const circG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+             circle.setAttribute("cx", parseFloat(n.x));
+             circle.setAttribute("cy", parseFloat(n.y));
+             circle.setAttribute("r", "40");
+             circle.setAttribute("fill", NodeCol)
+             circG.setAttribute("id", n.id);
+             circG.classList.add("node");
+             circle.setAttribute("data-on-layer", n.layer)
+             circle.classList.add("node");
+             circG.appendChild(circle);
+             network.appendChild(circG);
+             makeDraggable(circG);
+           });
+  
+           onLayerPaths.forEach(p => {
+             const startN = document.getElementById(p.x);
+             const endN = document.getElementById(p.y);
+             if (startN && endN) {
+				      NodeStart = startN;
+				      NodeEnd = endN;
+				      drawPath(startN, endN, true);
+			       }
+             // grouping and other SVG stuff is handled by drawPath
+           });
+           isLoading = false;
+      }
+      
+      async function boot() {
+        const loadState = JSON.parse(localStorage.getItem("global-state"));
+        state = loadState;
+        nodeCount = state.nodes.length + 1;
+        pathCount = state.paths.length + 1;
+        NodeCol = (state.settings && state.settings[0].nodecolor) ? state.settings[0].nodecolor : "#73CFFF";
+        PathCol = (state.settings && state.settings[0].pathcolor) ? state.settings[0].pathcolor : "#FFFFFF";
+        pathOption = (state.settings && state.settings[0].pathopt) ? state.settings[0].pathopt : "8";
+        
+        const firstLayerBtn = document.querySelector('.LABT');
+        
+        const LayerNums = state.nodes.map(n => n.layer);
+        const LayersToBeAdded = Math.max(...LayerNums) ;
+        for (let loop = 4; loop < LayersToBeAdded; loop++) {
+          const newLayerBtnONLOAD = newLayerBtn("yes");
+        }
+        
+        userOnLayer = 1; 
+        JSONLoad("loadfile");
+        
+        if (firstLayerBtn) {
+          document.querySelectorAll('.LABT').forEach(b => b.classList.remove('active'));
+          firstLayerBtn.classList.add('active');
+        }
+        
+        await SyncCounters();
+        document.querySelectorAll(".path").forEach(p => {
+          updatePath(p.children[0], p.children[1], true)
+        })
+      }
+      boot();
+      //State Storage End

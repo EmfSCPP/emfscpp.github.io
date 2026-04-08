@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="main.css">
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <title>Nodal</title>
+  </head>
+  <body>
+    <div class="container">
+      <div style="position: absolute; bottom: 5px; left: 10px; opacity: 0.3; font-size: 10px;">
+        Nodal V5.0 &#9903;
+      </div>
+
+      <h1>Editor</h1>
+      <!--  <button id="saveBtn">&#128190;</button>, for NodalV6 -->
+      <div class="settings">
+        <button id="settingsBtn">&#9881;</button>
+        <div class="settingPop1" id="settingPop1">
+          <div id="SP1MP"><strong>Pathing</strong></div>
+          <div id="SP1Menu">
+            <div id="SP11">4</div>
+            <div id="SP12" class="selected">8</div>
+            <div id="SP13">Smooth</div>
+          </div>
+        </div>
+        <div class="settingPop2" id="settingPop2">
+          <div id="SP2MP"><strong>Style</strong></div>
+          <div id="SP2Menu">
+            <div id="SP21">Nodes</div>
+            <div id="SP22">Paths</div>
+          </div>
+          <div id="stylePopup"></div>
+        </div>
+      </div>
+      <div class="svgArea">
+        <svg id="mainSvg" viewBox="-400 -400 800 800">
+          <g id="view" data-current-layer="1">
+            <g id="network">
+              
+            </g>
+          </g>
+        </svg>
+        <div class="layerBtns">
+          <button id="layer1Btn" class="SLBTN" data-layer-prop="1">1</button>
+          <button id="layer2Btn" data-layer-prop="2">2</button>
+            <div class="createdLayerBtns">
+              
+            </div>
+          <button id="layerAddBtn" class="LABT" data-layer-prop="creator">&#10065;+</button>
+          <button id="layerRemBtn" class="selected-layerbtn" data-layer-prop="destroyer">&#10065;-</button>
+        </div>
+      </div>
+      <p id="guide" class="guide"></p>
+      <div class="buttons">
+        <button id="addBtn">+</button>
+        <button id="deleteBtn">-</button>
+        <button id="pathBtn">~</button>
+        <button id="clearBtn">&#10005;</button>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+    
+  </body>
+</html>
