@@ -9,5 +9,4 @@ This will most likely flop, since why would anybody torture themselves? That is 
 Documentation for this project is in
 `Files/Nodal/documentation.md`
 
-Wiki for this project is at
-`https://github.com/EmfSCPP/emfscpp.github.io/wiki`
+Wiki for this project - [**Nodal Wiki**](https://github.com/EmfSCPP/emfscpp.github.io/wiki)
