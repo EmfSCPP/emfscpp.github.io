@@ -1,4 +1,4 @@
-# Latest Project
+# Nodal
 
 ![Image](Nodal/media/Screenshot-NodalPreview.jpg "Preview")
 
