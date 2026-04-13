@@ -1,12 +1,45 @@
-      const guide = document.getElementById("guide");
-      const svg = document.querySelector("#mainSvg");
-      const view = document.getElementById("view");
-      const network = document.getElementById("network");
-      const stylePopup = document.getElementById("stylePopup"); // used in style settings
+      const guide = document.getElementById("guide")!;
+      const svg = document.querySelector("#mainSvg") as SVGSVGElement;
+      const view = document.getElementById("view") as unknown as SVGSVGElement;
+      const network = document.getElementById("network") as unknown as SVGSVGElement;
+      const stylePopup = document.getElementById("stylePopup")!; // used in style settings
       
+      //Interfaces Start(Typescript)
+      interface NodalNode {
+        id: string;
+        x: string; //cx
+        y: string; //cy
+        layer: string;
+        color: string;
+      }
+      
+      interface NodalPath {
+        id: string;
+        x: string; //startNode id
+        y: string; //endNode id
+        layer: string;
+        color: string;
+        draw: string;
+      }
+      
+      interface GlobalSettings {
+        nodecolor: string;
+        pathcolor: string;
+        nodecount: number;
+        pathcount: number;
+        pathopt: string;
+      }
+
+      interface GlobalState {
+        settings: GlobalSettings[];
+        nodes: NodalNode[];
+        paths: NodalPath[];
+      }
+
       //State Management Start
       function getState() {
-        const Funcstate = JSON.parse(localStorage.getItem("global-state")) || { settings: [], nodes: [], paths: [] }
+        const savedState = localStorage.getItem("global-state")
+        const Funcstate = savedState ? JSON.parse(savedState) : { settings: [], nodes: [], paths: [] }
         return Funcstate;
       }
       let state = getState();
@@ -57,9 +90,9 @@
       //HTML Lines End
 
       //Path Start
-      const Path = document.getElementById("pathBtn");
-      let NodeStart = null;
-      let NodeEnd = null;
+      const Path = document.getElementById("pathBtn")!;
+      let NodeStart: SVGCircleElement | null = null;
+      let NodeEnd: SVGCircleElement | null = null;
       let pathMode = false;
       let pathOption = "8";
 
@@ -77,23 +110,27 @@
         document.addEventListener("click", clickOne);
       });
 
-      const clickOne = (e) => {
+      const clickOne = (e: MouseEvent | TouchEvent) => {
         e.stopPropagation();
-        if (e.target.tagName == "circle") {
-          const startNode = e.target.parentElement;
-          NodeStart = startNode;
+        const target = e.target as SVGElement | null;
+        if (!target) return;
+        if (target.tagName == "circle") {
+          const startNode = target.parentElement as SVGGElement | null;
+          NodeStart = startNode as any;
           guide.textContent = "Select End Node";
           document.removeEventListener("click", clickOne);
           document.addEventListener("click", clickTwo);
         }
       };
 
-      const clickTwo = (e) => {
+      const clickTwo = (e: MouseEvent | TouchEvent) => {
         e.stopPropagation();
-        if (e.target.tagName == "circle") {
-          const endNode = e.target.parentElement;
-          NodeEnd = endNode;
-          drawPath(NodeStart, NodeEnd);
+        const target = e.target as SVGElement | null;
+        if (!target) return;
+        if (target.tagName == "circle") {
+          const endNode = target.parentElement as SVGGElement | null; 
+          NodeEnd = endNode as any;
+          drawPath(NodeStart!, NodeEnd!);
           guide.style.display = "none";
           const circles = network.querySelectorAll("circle");
           circles.forEach((circle) => {
@@ -105,7 +142,7 @@
         }
       };
 
-      function drawPath(Start, End, isPathLoading = false) {
+      function drawPath(Start: SVGCircleElement, End: SVGCircleElement, isPathLoading: boolean = false) {
         if (Start == End) return;
         const path = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -125,9 +162,9 @@
         path.setAttribute("stroke", PathCol);
         path.setAttribute("stroke-width", "3.6");
         path.setAttribute("stroke-linecap", "round");
-        path.setAttribute("data-start", NodeStart.id);
-        path.setAttribute("data-end", NodeEnd.id);
-        PG.setAttribute("data-on-layer", userOnLayer);
+        path.setAttribute("data-start", NodeStart!.id);
+        path.setAttribute("data-end", NodeEnd!.id);
+        PG.setAttribute("data-on-layer", String(userOnLayer));
         pHitbox.classList.add("pathHB");
         pHitbox.setAttribute("stroke", "transparent");
         pHitbox.setAttribute("stroke-width", "10");
@@ -140,8 +177,8 @@
         if (!isPathLoading) {
           const data = {
             id: "path" + pathCount,
-            x: NodeStart.id,
-            y: NodeEnd.id,
+            x: NodeStart!.id,
+            y: NodeEnd!.id,
             layer: userOnLayer,
             color: PathCol,
             draw: ""
@@ -152,22 +189,19 @@
         JSONSave();
       }
 
-      function updatePath(p, hitbox) {
-        const start = document.getElementById(p.getAttribute("data-start"));
-        const end = document.getElementById(p.getAttribute("data-end"));
-
-        if (!start || !end) {
-          return;
-        }
+      function updatePath(p: SVGPathElement, hitbox: SVGPathElement) {
+        const start = document.getElementById(p.getAttribute("data-start") || "");
+        const end = document.getElementById(p.getAttribute("data-end") || "");
+        if (!start || !end) return;
 
         const X1 =
-          parseFloat(start.querySelector("circle").getAttribute("cx")) || 0;
+          parseFloat(start.querySelector("circle")!.getAttribute("cx") || "0");
         const Y1 =
-          parseFloat(start.querySelector("circle").getAttribute("cy")) || 0;
+          parseFloat(start.querySelector("circle")!.getAttribute("cy") || "0");
         const X2 =
-          parseFloat(end.querySelector("circle").getAttribute("cx")) || 0;
+          parseFloat(end.querySelector("circle")!.getAttribute("cx") || "0");
         const Y2 =
-          parseFloat(end.querySelector("circle").getAttribute("cy")) || 0;
+          parseFloat(end.querySelector("circle")!.getAttribute("cy") || "0");
         
         // prettier-ignore
         const startNpoints = [ //Dont Judge The Dictionaries Pls
@@ -218,10 +252,6 @@
             }
           }
           p.setAttribute("d", `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`);
-          p.setAttribute("data-x1", bestSx);
-          p.setAttribute("data-y1", bestSy);
-          p.setAttribute("data-x2", bestEx);
-          p.setAttribute("data-y2", bestEy);
           hitbox.setAttribute(
             "d",
             `M ${bestSx} ${bestSy} L ${bestEx} ${bestEy}`,
@@ -234,59 +264,55 @@
           const ey = Y2 - RADIUS * Math.sin(angle);
 
           p.setAttribute("d", `M ${sx} ${sy} L ${ex} ${ey}`);
-          p.setAttribute("data-x1", bestSx);
-          p.setAttribute("data-y1", bestSy);
-          p.setAttribute("data-x2", bestEx);
-          p.setAttribute("data-y2", bestEy);
           hitbox.setAttribute("d", `M ${sx} ${sy} L ${ex} ${ey}`);
         }
       }
       //Path End
       //Drag Start
-      function makeDraggable(node) {
+      function makeDraggable(node: SVGGElement) {
         let drag = false;
         let mouseDrag = false;
 
-        //Touch Start
-        node.addEventListener("click", (e) => {
+        node.addEventListener("click", (e: MouseEvent | TouchEvent) => {
           if (pathMode || deleteMode) return;
           drag = !drag;
           const circle = node.querySelector("circle");
 
-          if (drag) {
+          if (drag && circle) {
             circle.setAttribute("r", "42");
             circle.setAttribute("stroke", "#EFFFFA");
             circle.setAttribute("stroke-width", "4");
-          } else {
+          } else if ((!drag) && circle){
             circle.setAttribute("r", "40");
             circle.setAttribute("stroke-width", "0");
           }
         });
-
-        node.addEventListener("touchmove", (e) => {
+        
+        //Touch Start
+        node.addEventListener("touchmove", (e: TouchEvent) => {
           if (!drag) return;
 
-          const circle = node.querySelector("circle");
+          const circle = node.querySelector("circle") as SVGCircleElement;
 
           const pt = svg.createSVGPoint();
-          pt.x = e.touches[0].clientX;
-          pt.y = e.touches[0].clientY;
-          const finger = pt.matrixTransform(network.getScreenCTM().inverse());
+          pt.x = e.touches[0]!.clientX;
+          pt.y = e.touches[0]!.clientY;
+          const finger = pt.matrixTransform(network.getScreenCTM()!.inverse());
 
-          requestAnimationFrame( () => Sdrag(circle, finger.x, finger.y));
+          Sdrag(circle, finger.x, finger.y);
 
           network.querySelectorAll(".pathV").forEach((p) => {
             if (
               p.getAttribute("data-start") === node.id ||
               p.getAttribute("data-end") === node.id
             ) {
-              const hitboxPath = p.parentElement.querySelector(".pathHB");
+              const hitboxPath = p.parentElement?.querySelector(".pathHB") as SVGPathElement;
               updatePath(p, hitboxPath);
             }
           });
         });
         node.addEventListener("touchend", () => {
-          const Ndata = state.nodes.find(n => n.id === node.id)
+          const Ndata = state.nodes.find((n: SVGGElement) => n.id === node.id)
           if (!Ndata) return;
           Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
           Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
@@ -294,7 +320,7 @@
         })
         //Touch End
         //Mouse Start     
-        node.addEventListener("mousemove", (e) => {
+        node.addEventListener("mousemove", (e: MouseEvent) => {
           if (pathMode || deleteMode) return;
           e.stopPropagation();
 
@@ -303,13 +329,13 @@
           pt.x = e.clientX;
           pt.y = e.clientY;
 
-          const cursor = pt.matrixTransform(network.getScreenCTM().inverse());
+          const cursor = pt.matrixTransform(network.getScreenCTM()!.inverse());
 
-          requestAnimationFrame( () => Sdrag(circle, cursor.x, cursor.y));
+          Sdrag(circle, cursor.x, cursor.y);
         });
           
           node.addEventListener("mouseup", () => {
-            const Ndata = state.nodes.find(n => n.id === node.id)
+            const Ndata = state.nodes.find((n: any)=> n.id === node.id)
             if (!Ndata) return;
             Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
             Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
@@ -317,33 +343,31 @@
           });
         //Mouse End
       }
-      function Sdrag(ele, x, y) {
+      function Sdrag(ele: SVGCircleElement, x: number, y: number) {
         if (ele && typeof ele.setAttribute === "function") {
-        ele.setAttribute("cx", x);
-        ele.setAttribute("cy", y);
+          ele.setAttribute("cx", `${x}`);
+          ele.setAttribute("cy", `${y}`);
 
-        resolveCollisions(ele);
-        network.querySelectorAll(".path").forEach(pat => {
-          updatePath(pat.children[0], pat.children[1]);
-        });
-        
-        requestAnimationFrame(Sdrag);
+          resolveCollisions(ele);
+          network.querySelectorAll(".path").forEach(pat => {
+            updatePath(pat.children[0], pat.children[1]);
+          });
         }
       }
       //Drag End
       //Collision Start
       const PADDING = 2;
 
-      function resolveCollisions(movedNode) {
+      function resolveCollisions(movedNode: SVGCircleElement) {
         const nodes = Array.from(network.querySelectorAll("circle"));
-        const ax = parseFloat(movedNode.getAttribute("cx")) || 0;
-        const ay = parseFloat(movedNode.getAttribute("cy")) || 0;
+        const ax = parseFloat(movedNode.getAttribute("cx") || "0");
+        const ay = parseFloat(movedNode.getAttribute("cy") || "0");
 
         for (const other of nodes) {
           if (other === movedNode) continue;
 
-          const bx = parseFloat(other.getAttribute("cx")) || 0;
-          const by = parseFloat(other.getAttribute("cy")) || 0;
+          const bx = parseFloat(other.getAttribute("cx") || "0");
+          const by = parseFloat(other.getAttribute("cy") || "0");
 
           const dx = ax - bx;
           const dy = ay - by;
@@ -359,22 +383,24 @@
             const X = bx - nx * overlap;
             const Y = by - ny * overlap;
 
-            other.setAttribute("cx", X);
-            other.setAttribute("cy", Y);
+            other.setAttribute("cx", `${X}`);
+            other.setAttribute("cy", `${Y}`);
             
-            const otherD = state.nodes.find(n => n.id === other.parentElement.id);
+            const otherGroup = other.parentElement;
+            if (!otherGroup) return;
+            
+            const otherD = state.nodes.find((n: any) => n.id === otherGroup.id);
             if (otherD) {
               otherD.x = X;
               otherD.y = Y;
             }
-
-            const otherGroup = other.parentElement;
+            
             network.querySelectorAll(".pathV").forEach((p) => {
               if (
                 p.getAttribute("data-start") === otherGroup.id ||
                 p.getAttribute("data-end") === otherGroup.id
               ) {
-                const hitboxPath = p.parentElement.querySelector(".pathHB");
+                const hitboxPath = p.parentElement?.querySelector(".pathHB") || "";
                 updatePath(p, hitboxPath);
               }
             });
@@ -438,7 +464,7 @@
                 p.getAttribute("data-end") === nodeId
               ) p.parentElement.remove();
             });
-            state.nodes = state.nodes.filter(n => !(n.id === nodeId && n.layer === userOnLayer))
+            state.nodes = state.nodes.filter((n: NodalNode) => !(n.id === nodeId && n.layer === userOnLayer))
             state.paths = state.paths.filter(p => p.x !== nodeId && p.y !== nodeId);
             nodeGroup.remove();
             guide.style.display = "none";
@@ -502,7 +528,7 @@
           b.classList.remove("SLBTN");
         });
         layer1Btn.classList.add("SLBTN");
-        view.dataset.currentLayer = 1;
+        view.dataset.currentLayer = "1";
         JSONSave();
         userOnLayer = 1;
         JSONLoad("loadlayer");
@@ -513,7 +539,7 @@
           b.classList.remove("SLBTN");
         });
         layer2Btn.classList.add("SLBTN");
-        view.dataset.currentLayer = 2;
+        view.dataset.currentLayer = " 2";
         JSONSave();
         userOnLayer = 2;
         JSONLoad("loadlayer");
@@ -535,7 +561,7 @@
           const rebuiltLayerBtn = newLayerBtn();
         }
         JSONSave();
-        JSONLoad();
+        JSONLoad("loadlayer");
         if (layerBtnCount == 2) {
           layerRemBtn.classList.remove("LRBT");
           layerRemBtn.classList.add("selected-layerbtn");
@@ -560,7 +586,7 @@
             b.classList.remove("SLBTN");
           });
           ele.classList.add("SLBTN");
-          view.dataset.currentLayer = num
+          view.dataset.currentLayer = `${num}`
           JSONSave();
           userOnLayer = num;
           JSONLoad("loadlayer");
@@ -614,25 +640,19 @@
       let previousDist; //touch devices
       let prevMidX, prevMidY;
 
-      const StartHandler = (e) => {
+      const StartHandler = (e: any) => { //dont question the any
       if (e.touches && e.touches.length === 2) {
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
           previousDist = Math.sqrt(dx * dx + dy * dy);
         }
-        prevMidX =
-          e.touches && e.touches.length > 1
-            ? (e.touches[0].clientX + e.touches[1].clientX) / 2
-            : e.clientX;
-        prevMidY =
-          e.touches && e.touches.length > 1
-            ? (e.touches[0].clientY + e.touches[1].clientY) / 2
-            : e.clientY;
+        prevMidX = e.touches && e.touches.length > 1 ? (e.touches[0].clientX + e.touches[1].clientX) / 2 : e.clientX;
+        prevMidY = e.touches && e.touches.length > 1 ? (e.touches[0].clientY + e.touches[1].clientY) / 2 : e.clientY;
       };
 
       let rafPending = false;
 
-      const DragPanHandler = (e) => {
+      const DragPanHandler = (e: any) => { //dont question the any
         if (e.type === "mousemove" && !isPanning) return;
         const MidX =
           e.touches && e.touches.length > 1
@@ -714,12 +734,12 @@
       const popUp1 = document.getElementById("settingPop1");
       const popUp2 = document.getElementById("settingPop2");
 
-      const SP11 = document.getElementById("SP11"); //4
-      const SP12 = document.getElementById("SP12"); //8
-      const SP13 = document.getElementById("SP13"); //Smooth
+      const SP11 = document.getElementById("SP11")!; //4
+      const SP12 = document.getElementById("SP12")!; //8
+      const SP13 = document.getElementById("SP13")!; //Smooth
 
-      const SP21 = document.getElementById("SP21"); //Nodes
-      const SP22 = document.getElementById("SP22"); //Paths
+      const SP21 = document.getElementById("SP21")!; //Nodes
+      const SP22 = document.getElementById("SP22")!; //Paths
 
       const optsArr1 = [SP11, SP12, SP13];
       const optsArr2 = [SP21, SP22];
@@ -738,9 +758,8 @@
       });
 
       //Pathing Settings Start
-      const pathSettings = {
-        //Map to avoid repetition in updating paths
-        SP11: "4", //after selection
+      const pathSettings = { //Map to avoid repetition in updating paths
+        SP11: "4",           //after selection
         SP12: "8",
         SP13: "Smooth",
       };
@@ -748,50 +767,49 @@
       function SettingPath(option) {
         if (pathSettings[option.id]) {
           pathOption = pathSettings[option.id];
-          network.querySelectorAll(".path").forEach((pat) => {
-            const VPath = pat.children[0];
-            const HitPath = pat.children[1];
-            updatePath(VPath, HitPath);
+          network.querySelectorAll(".path").forEach(pat => {
+            const VPath = pat.children[0] as SVGPathElement;
+            const HitPath = pat.children[1] as SVGPathElement;
+            updatePath(VPath!, HitPath!);
           });
         }
       }
 
-      for (let funcLoopA of optsArr1) {
-        funcLoopA.addEventListener("click", (e) => {
+      for (const funcLoopA of optsArr1) {
+        funcLoopA!.addEventListener("click", (e) => {
           e.stopPropagation();
-          funcLoopA.classList.add("selected");
+          funcLoopA!.classList.add("selected");
           SettingPath(funcLoopA);
-          optsArr1.forEach((opt) => {
-            if (opt.id === funcLoopA.id) return;
-            opt.classList.remove("selected");
+          optsArr1.forEach(opt => {
+            if (opt!.id === funcLoopA!.id) return;
+            opt!.classList.remove("selected");
           });
         });
       }
       //Pathing Settings End
       //Style Settings Start
       let stylePopShow = false;
-      let ApplyStyleTo = null;
+      let ApplyStyleTo: string | undefined = undefined;
 
-      const styleAppliers = {
-        //for proper color menu switching
-        SP21: ".node", //global scope
+      const styleAppliers: {[key: string]: string} = { // global scope for proper color menu switching
+        SP21: ".node",
         SP22: ".path",
       };
 
       function loadMainColorMenu() {
         stylePopup.innerHTML = colorPresetDiv;
 
-        const C1 = document.getElementById("col1");
-        const C2 = document.getElementById("col2");
-        const C3 = document.getElementById("col3");
-        const C4 = document.getElementById("col4");
-        const C5 = document.getElementById("colPick"); //picker
+        const C1 = document.getElementById("col1") as unknown as SVGCircleElement;
+        const C2 = document.getElementById("col2") as unknown as SVGCircleElement;
+        const C3 = document.getElementById("col3") as unknown as SVGCircleElement;
+        const C4 = document.getElementById("col4")  as unknown as SVGCircleElement;
+        const C5 = document.getElementById("colPick") as unknown as SVGCircleElement; //picker
 
         const colorOptions = [C1, C2, C3, C4, C5];
 
-        function SettingStyle(option) {
+        function SettingStyle(option: HTMLElement) {
           if (!styleAppliers[option.id]) {
-            col.addEventListener("click", colPresEvents(col));
+            option.addEventListener("click", colPresEvents(option as unknown as SVGCircleElement));
             return;
           }
 
@@ -799,7 +817,7 @@
 
           if (isSame) {
             stylePopShow = false;
-            ApplyStyleTo = null;
+            ApplyStyleTo = undefined;
           } else {
             ApplyStyleTo = styleAppliers[option.id];
             if (ApplyStyleTo == ".path") {
@@ -824,18 +842,18 @@
           stylePopup.style.display = stylePopShow ? "block" : "none";
         }
 
-        for (let funcLoopB of optsArr2) {
-          funcLoopB.onclick = () => {
-            funcLoopB.classList.toggle("selected");
+        for (const funcLoopB of optsArr2) {
+          funcLoopB!.onclick = () => {
+            funcLoopB!.classList.toggle("selected");
             SettingStyle(funcLoopB);
             optsArr2.forEach((opt) => {
-              if (opt.id === funcLoopB.id) return;
+              if (opt.id === funcLoopB!.id) return;
               opt.classList.remove("selected");
             });
           };
         }
 
-        const colPresEvents = (arg) => (e) => {
+        const colPresEvents = (arg: SVGCircleElement) => (e: TouchEvent | MouseEvent) => {
           e.stopPropagation();
           if (arg == C5) {
             loadColorPickerMenu();
@@ -848,7 +866,7 @@
               coul.classList.remove("colorSelected");
             });
           }
-        };
+        }
 
         for (let col of colorOptions) {
           col.addEventListener("click", colPresEvents(col));
@@ -870,35 +888,40 @@
 
       function loadColorPickerMenu() {
         stylePopup.innerHTML = colorPickerDiv;
-        const applyColBtn = document.getElementById("applyCusCol");
+        const colFeedback = document.getElementById("colorShow")!;
+        const HexColIn = document.getElementById("hexColIn") as HTMLInputElement;
+        const applyColBtn = document.getElementById("applyCusCol")!;
+        const backBtn = document.getElementById("backBtn")!;
+        
         applyColBtn.onclick = () => {
-          const HexColor = document.getElementById("hexColIn").value;
+          const HexColor = HexColIn.value;
           ApplyCol(HexColor);
         };
-        const HexColIn = document.getElementById("hexColIn");
+        
         HexColIn.oninput = () => {
-          const colFeedback = document.getElementById("colorShow");
           colFeedback.setAttribute("fill", HexColIn.value);
         };
-        const backBtn = document.getElementById("backBtn");
+        
         backBtn.onclick = () => {
           loadMainColorMenu();
         };
       }
 
-      function ApplyCol(color) {
+      function ApplyCol(colorIn: any) { //since it can be a string or an SVGCircleEl
         let Color;
-        if (color.tagName) Color = color.getAttribute("fill");
-        else Color = color;
+        if (colorIn.tagName) Color = colorIn.getAttribute("fill");
+        else Color = colorIn;
         if (Color != "url(#rainbow)") {
           if (ApplyStyleTo == ".path") PathCol = Color;
           else if (ApplyStyleTo == ".node") NodeCol = Color;
         }
+        if (!ApplyStyleTo) return;
         network.querySelectorAll(ApplyStyleTo).forEach((el) => {
           if (ApplyStyleTo == ".path")
             el.children[0].setAttribute("stroke", PathCol);
           else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
         });
+        JSONSave();
       }
       //Style Settings End
 
@@ -907,28 +930,40 @@
       //state is defined at the top
       let isLoading = false;
       
-      function JSONupdate(inputEl, elType, stateObject) {
-        const data = {
+      function JSONupdate(inputEl: any, elType: string, stateObject: any) {
+        let data: any = {};
+
+        if (elType === "setting") {
+          data = {
+            nodecolor: document.querySelector("circle")?.getAttribute("fill") || "#73CFFF",
+            pathcolor: document.querySelector(".pathV")?.getAttribute("stroke") || "#FFFFFF",
+            nodecount: nodeCount,
+            pathcount: pathCount,
+            pathopt: "Smooth"
+          };
+          stateObject.settings = [data]; 
+          return;
+        }
+        
+        data = {
           x: inputEl.getAttribute("cx"),
           y: inputEl.getAttribute("cy"),
-          color: inputEl.getAttribute(elType == "nodes" ? "fill" : "stroke"),
-          id: inputEl.parentElement.getAttribute("id"),
+          color: inputEl.getAttribute(elType === "nodes" ? "fill" : "stroke"),
+          id: inputEl.parentElement?.getAttribute("id") || "",
           layer: inputEl.getAttribute("data-on-layer")
-        }
-        if (elType == "paths") {
-          data.layer = inputEl.parentElement.dataset.onLayer; //IF DEPRECATED
-          data.x = inputEl.getAttribute("data-start"); // x and y for from and to
+        };
+
+        if (elType === "paths") {
+          data.layer = inputEl.parentElement?.dataset.onLayer;
+          data.x = inputEl.getAttribute("data-start");
           data.y = inputEl.getAttribute("data-end");
           data.draw = inputEl.getAttribute("d");
         }
-        if (elType == "setting") {
-          data.nodecolor = document.querySelector("circle").getAttribute("fill");
-          data.pathcolor = document.querySelector(".pathV").getAttribute("stroke");
-        }
-        
-        stateObject[elType] = stateObject[elType].filter(el => el.id !== data.id);
+
+        stateObject[elType] = stateObject[elType].filter((el: any) => el.id !== data.id);
         stateObject[elType].push(data);
       }
+
       
       function JSONSave() {
 		  if (isLoading) return;
@@ -938,21 +973,21 @@
 		  
       localStorage.setItem("global-state", JSON.stringify(localState));
       }
-      function JSONLoad(type) { //loadfile or loadlayer
+      function JSONLoad(type: string) { //loadfile or loadlayer
 		   isLoading = true;
            state = getState();
            if (type == "loadfile") {
-             console.log("testing");
+             console.log("Loading localStorage global-state");
            }
            
            network.innerHTML = "";
-           const onLayerNodes = state.nodes.filter(n => parseInt(n.layer) == userOnLayer);
-           const onLayerPaths = state.paths.filter(p => parseInt(p.layer) == userOnLayer);
-           onLayerNodes.forEach(n => {
+           const onLayerNodes = state.nodes.filter((n: any) => parseInt(n.layer) == userOnLayer);
+           const onLayerPaths = state.paths.filter((p: any) => parseInt(p.layer) == userOnLayer);
+           onLayerNodes.forEach((n: any) => {
 			       const circG = document.createElementNS("http://www.w3.org/2000/svg", "g");
              const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-             circle.setAttribute("cx", parseFloat(n.x));
-             circle.setAttribute("cy", parseFloat(n.y));
+             circle.setAttribute("cx", n.x);
+             circle.setAttribute("cy", n.y);
              circle.setAttribute("r", "40");
              circle.setAttribute("fill", NodeCol)
              circG.setAttribute("id", n.id);
@@ -964,9 +999,9 @@
              makeDraggable(circG);
            });
   
-           onLayerPaths.forEach(p => {
-             const startN = document.getElementById(p.x);
-             const endN = document.getElementById(p.y);
+           onLayerPaths.forEach((p: any) => {
+             const startN = document.getElementById(p.x) as unknown as SVGCircleElement;
+             const endN = document.getElementById(p.y) as unknown as SVGCircleElement;
              if (startN && endN) {
 				      NodeStart = startN;
 				      NodeEnd = endN;
@@ -978,8 +1013,18 @@
       }
       
       async function boot() {
-        const loadState = JSON.parse(localStorage.getItem("global-state"));
-        state = loadState;
+        const loadState = JSON.parse(localStorage.getItem("global-state") || "null") ;
+        state = loadState ? loadState :  {
+          settings: [{
+            nodecolor: "#73CFFF",
+            pathcolor: "#FFFFFF",
+            nodecount: 0,
+            pathcount: 0,
+            pathopt: "Smooth"
+          }],
+          nodes: [],
+          paths: []
+        };
         nodeCount = state.nodes.length + 1;
         pathCount = state.paths.length + 1;
         NodeCol = (state.settings && state.settings[0].nodecolor) ? state.settings[0].nodecolor : "#73CFFF";
@@ -988,10 +1033,10 @@
         
         const firstLayerBtn = document.querySelector('.LABT');
         
-        const LayerNums = state.nodes.map(n => n.layer);
+        const LayerNums = state.nodes.map((n: any) => n.layer);
         const LayersToBeAdded = Math.max(...LayerNums) ;
         for (let loop = 4; loop < LayersToBeAdded; loop++) {
-          const newLayerBtnONLOAD = newLayerBtn("yes");
+          const newLayerBtnONLOAD = newLayerBtn();
         }
         
         userOnLayer = 1; 
@@ -1004,7 +1049,7 @@
         
         await SyncCounters();
         document.querySelectorAll(".path").forEach(p => {
-          updatePath(p.children[0], p.children[1], true)
+          if (p) updatePath(p.children[0] as SVGPathElement, p.children[1] as SVGPathElement)
         })
       }
       boot();
