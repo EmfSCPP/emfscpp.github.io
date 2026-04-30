@@ -21,20 +21,6 @@
         color: string;
         draw: string;
       }
-      
-      interface GlobalSettings {
-        nodecolor: string;
-        pathcolor: string;
-        nodecount: number;
-        pathcount: number;
-        pathopt: string;
-      }
-
-      interface GlobalState {
-        settings: GlobalSettings[];
-        nodes: NodalNode[];
-        paths: NodalPath[];
-      }
 
       //State Management Start
       function getState() {
@@ -45,7 +31,6 @@
       let state = getState();
       //State Management End
       
-      let layer = 1;
       let userOnLayer = 1;
 
       let scale = 1;
@@ -271,9 +256,8 @@
       //Drag Start
       function makeDraggable(node: SVGGElement) {
         let drag = false;
-        let mouseDrag = false;
 
-        node.addEventListener("click", (e: MouseEvent | TouchEvent) => {
+        node.addEventListener("click", () => {
           if (pathMode || deleteMode) return;
           drag = !drag;
           const circle = node.querySelector("circle");
@@ -410,7 +394,7 @@
       }
       //Collision End
       //Add Start
-      const Add = document.getElementById("addBtn");
+      const Add = document.getElementById("addBtn")!;
       Add.addEventListener("click", () => {
         const NewNode = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -420,9 +404,9 @@
         const NNG = document.createElementNS("http://www.w3.org/2000/svg", "g");
         NewNode.setAttribute("r", "40");
         NewNode.setAttribute("fill", NodeCol);
-        NewNode.setAttribute("data-on-layer", userOnLayer)
-        NewNode.setAttribute("cx", -transX / scale);
-        NewNode.setAttribute("cy", -transY / scale);
+        NewNode.setAttribute("data-on-layer", `${userOnLayer}`)
+        NewNode.setAttribute("cx", `${-transX / scale}`);
+        NewNode.setAttribute("cy", `${-transY / scale}`);
 
         NNG.setAttribute("id", "node" + nodeCount);
         NNG.classList.add("node");
@@ -450,33 +434,35 @@
         const target = e.target as Element | null; 
         if (target?.matches(".node") && deleteMode) {
           const nodeGroup = target.parentElement;
+          if (!nodeGroup) return;
           const nodeId = nodeGroup.id;
           nodeGroup.classList.add("deletingelement");
           network.querySelectorAll(".pathV").forEach((p) => {
               if (
                 p.getAttribute("data-start") === nodeId ||
                 p.getAttribute("data-end") === nodeId
-              ) p.parentElement.classList.add("deletingelement");
+              ) p.parentElement?.classList.add("deletingelement");
             });
           setTimeout( () => {
             network.querySelectorAll(".pathV").forEach((p) => {
               if (
                 p.getAttribute("data-start") === nodeId ||
                 p.getAttribute("data-end") === nodeId
-              ) p.parentElement.remove();
+              ) p.parentElement?.remove();
             });
-            state.nodes = state.nodes.filter((n: NodalNode) => !(n.id === nodeId && n.layer === userOnLayer))
-            state.paths = state.paths.filter(p => p.x !== nodeId && p.y !== nodeId);
+            state.nodes = state.nodes.filter((n: NodalNode) => !(n.id === nodeId && parseInt(n.layer) === userOnLayer))
+            state.paths = state.paths.filter((p: NodalPath) => p.x !== nodeId && p.y !== nodeId);
             nodeGroup.remove();
             guide.style.display = "none";
             deleteMode = !deleteMode;
           }, 300);
         }
-        if (e.target.matches(".pathHB") && deleteMode) {
-          const pg = e.target.parentElement;
+        if (target?.matches(".pathHB") && deleteMode) {
+          const pg = (target as Element).parentElement;
+          if (!pg) return;
           pg.classList.add("deletingelement");
           setTimeout( () => {
-            state.paths = state.paths.filter(p => !(p.id == pg.id && p.layer == userOnLayer))
+            state.paths = state.paths.filter((p: NodalPath) => !(p.id == pg.id && parseInt(p.layer) == userOnLayer))
             pg.remove();
             guide.style.display = "none";
             deleteMode = !deleteMode;
@@ -498,7 +484,7 @@
       });
       //Delete End
       //Clear Start
-      const clearBtn = document.getElementById("clearBtn");
+      const clearBtn = document.getElementById("clearBtn")!;
       clearBtn.addEventListener("click", () => {
         if (confirm("Clear all nodes and paths?")) {
           network.innerHTML = "";
@@ -510,11 +496,10 @@
       });
       //Clear End
       //Layering Start
-      const layerMenu = document.querySelector(".layerBtns")!;
       const newLayerMenu = document.querySelector(".createdLayerBtns")!;
       
-      const layer1Btn = document.getElementById("layer1Btn");
-      const layer2Btn = document.getElementById("layer2Btn");
+      const layer1Btn = document.getElementById("layer1Btn")!;
+      const layer2Btn = document.getElementById("layer2Btn")!;
       const layerAddBtn = document.getElementById("layerAddBtn")!;
       const layerRemBtn = document.getElementById("layerRemBtn")!;
       
@@ -545,20 +530,20 @@
         JSONLoad("loadlayer");
       }
       
-      function DeletionAndRebuild(layerNum) {
-        state.nodes = state.nodes.filter(n => n.layer !== layerNum);
-        state.nodes.forEach(n => {
-          if (n.layer > layerNum) n.layer -= 1;
+      function DeletionAndRebuild(layerNum: number) {
+        state.nodes = state.nodes.filter((n: NodalNode) => parseInt(n.layer) !== layerNum);
+        state.nodes.forEach((n: NodalNode) => {
+          if (parseInt(n.layer) > layerNum) n.layer = String(parseInt(n.layer) - 1);
         });
-        state.paths = state.paths.filter(p => p.layer !== layerNum);
-        state.paths.forEach(p => {
-          if (p.layer > layerNum) p.layer -= 1;
+        state.paths = state.paths.filter((p: NodalPath) => parseInt(p.layer) !== layerNum);
+        state.paths.forEach((p: NodalPath) => {
+          if (parseInt(p.layer) > layerNum) p.layer = String(parseInt(p.layer) - 1);
         });
         const target = layerBtnCount - 1;
         layerBtnCount = 2;
         newLayerMenu.innerHTML = "";
         for (let loop = 2; loop < target; loop++) {
-          const rebuiltLayerBtn = newLayerBtn();
+          newLayerBtn();
         }
         JSONSave();
         JSONLoad("loadlayer");
@@ -601,7 +586,6 @@
         NewLayerBtnFuncAdd(newButton, layerBtnCount);
         
         newLayerMenu.appendChild(newButton);
-        return newButton;
       }
       
       layerAddBtn.onclick = () => {
@@ -614,7 +598,7 @@
           layerRemBtn.classList.remove("selected-layerbtn");
           layerRemBtn.classList.add("LRBT");
         }
-        const newBtn = newLayerBtn();
+        newLayerBtn();
         if (layerBtnCount === 8) {
           layerAddBtn.classList.add("selected-layerbtn");
         }
@@ -764,7 +748,7 @@
 
       function SettingPath(option: HTMLElement) {
         if (pathSettings[option.id]) {
-          pathOption = pathSettings[option.id];
+          pathOption = pathSettings[option.id] ?? "";
           network.querySelectorAll(".path").forEach(pat => {
             const VPath = pat.children[0] as SVGPathElement;
             const HitPath = pat.children[1] as SVGPathElement;
@@ -916,7 +900,7 @@
         if (!ApplyStyleTo) return;
         network.querySelectorAll(ApplyStyleTo).forEach((el) => {
           if (ApplyStyleTo == ".path")
-            el.children[0].setAttribute("stroke", PathCol);
+            el.children[0]?.setAttribute("stroke", PathCol);
           else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
         });
         JSONSave();
@@ -927,41 +911,6 @@
       //State Storage Start
       //state is defined at the top
       let isLoading = false;
-      
-      function JSONupdate(inputEl: any, elType: string, stateObject: any) {
-        let data: any = {};
-
-        if (elType === "setting") {
-          data = {
-            nodecolor: document.querySelector("circle")?.getAttribute("fill") || "#73CFFF",
-            pathcolor: document.querySelector(".pathV")?.getAttribute("stroke") || "#FFFFFF",
-            nodecount: nodeCount,
-            pathcount: pathCount,
-            pathopt: "Smooth"
-          };
-          stateObject.settings = [data]; 
-          return;
-        }
-        
-        data = {
-          x: inputEl.getAttribute("cx"),
-          y: inputEl.getAttribute("cy"),
-          color: inputEl.getAttribute(elType === "nodes" ? "fill" : "stroke"),
-          id: inputEl.parentElement?.getAttribute("id") || "",
-          layer: inputEl.getAttribute("data-on-layer")
-        };
-
-        if (elType === "paths") {
-          data.layer = inputEl.parentElement?.dataset.onLayer;
-          data.x = inputEl.getAttribute("data-start");
-          data.y = inputEl.getAttribute("data-end");
-          data.draw = inputEl.getAttribute("d");
-        }
-
-        stateObject[elType] = stateObject[elType].filter((el: any) => el.id !== data.id);
-        stateObject[elType].push(data);
-      }
-
       
       function JSONSave() {
 		  if (isLoading) return;
@@ -1031,10 +980,10 @@
         
         const firstLayerBtn = document.querySelector('.LABT');
         
-        const LayerNums = state.nodes.map((n: any) => parseInt(n.layer));
+        const LayerNums = state.nodes.map((n: NodalNode) => parseInt(n.layer));
         const LayersToBeAdded = LayerNums.length ? Math.max(...LayerNums) : 3;
         for (let loop = 2; loop < LayersToBeAdded; loop++) {
-          const newLayerBtnONLOAD = newLayerBtn();
+          newLayerBtn();
         }
         
         userOnLayer = 1; 
