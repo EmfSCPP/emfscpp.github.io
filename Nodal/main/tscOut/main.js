@@ -246,8 +246,8 @@ function makeDraggable(node) {
         const Ndata = state.nodes.find((n) => n.id === node.id);
         if (!Ndata)
             return;
-        Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
-        Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
+        Ndata.x = parseFloat(node.children[0]?.getAttribute("cx") ?? "0");
+        Ndata.y = parseFloat(node.children[0]?.getAttribute("cy") ?? "0");
         JSONSave();
     });
     //Touch End
@@ -267,8 +267,8 @@ function makeDraggable(node) {
         const Ndata = state.nodes.find((n) => n.id === node.id);
         if (!Ndata)
             return;
-        Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
-        Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
+        Ndata.x = parseFloat(node.children[0]?.getAttribute("cx") ?? "0");
+        Ndata.y = parseFloat(node.children[0]?.getAttribute("cy") ?? "0");
         JSONSave();
     });
     //Mouse End
@@ -361,8 +361,9 @@ Add.addEventListener("click", () => {
 const Delete = document.getElementById("deleteBtn");
 let deleteMode = false;
 const DeleteClick = (e) => {
-    if (e.target.matches(".node") && deleteMode) {
-        const nodeGroup = e.target.parentElement;
+    const target = e.target;
+    if (target?.matches(".node") && deleteMode) {
+        const nodeGroup = target.parentElement;
         const nodeId = nodeGroup.id;
         nodeGroup.classList.add("deletingelement");
         network.querySelectorAll(".pathV").forEach((p) => {
@@ -394,7 +395,7 @@ const DeleteClick = (e) => {
         }, 300);
     }
 };
-Delete.addEventListener("click", (e) => {
+Delete.addEventListener("click", () => {
     if (deleteMode) {
         guide.style.display = "none";
         document.removeEventListener("click", DeleteClick);
@@ -427,7 +428,6 @@ const layer2Btn = document.getElementById("layer2Btn");
 const layerAddBtn = document.getElementById("layerAddBtn");
 const layerRemBtn = document.getElementById("layerRemBtn");
 let layerBtnCount = 2;
-let layerButtons = {};
 let layerDeleteMode = false;
 layer1Btn.onclick = () => {
     if (userOnLayer == 1)
@@ -448,7 +448,7 @@ layer2Btn.onclick = () => {
         b.classList.remove("SLBTN");
     });
     layer2Btn.classList.add("SLBTN");
-    view.dataset.currentLayer = " 2";
+    view.dataset.currentLayer = "2";
     JSONSave();
     userOnLayer = 2;
     JSONLoad("loadlayer");
@@ -505,10 +505,9 @@ function NewLayerBtnFuncAdd(ele, num) {
 function newLayerBtn() {
     layerBtnCount++;
     const newButton = document.createElement("button");
-    newButton.innerText = layerBtnCount;
-    newButton.dataset.layerProp = layerBtnCount;
+    newButton.innerText = String(layerBtnCount);
+    newButton.dataset.layerProp = String(layerBtnCount);
     NewLayerBtnFuncAdd(newButton, layerBtnCount);
-    layerButtons["layer" + layerBtnCount + "Btn"] = newButton;
     newLayerMenu.appendChild(newButton);
     return newButton;
 }
@@ -645,7 +644,7 @@ settingsBtn.addEventListener("click", () => {
 const pathSettings = {
     SP11: "4", //after selection
     SP12: "8",
-    SP13: "Smooth",
+    SP13: "Smooth"
 };
 function SettingPath(option) {
     if (pathSettings[option.id]) {
@@ -898,9 +897,9 @@ async function boot() {
     PathCol = (state.settings && state.settings[0].pathcolor) ? state.settings[0].pathcolor : "#FFFFFF";
     pathOption = (state.settings && state.settings[0].pathopt) ? state.settings[0].pathopt : "8";
     const firstLayerBtn = document.querySelector('.LABT');
-    const LayerNums = state.nodes.map((n) => n.layer);
-    const LayersToBeAdded = Math.max(...LayerNums);
-    for (let loop = 4; loop < LayersToBeAdded; loop++) {
+    const LayerNums = state.nodes.map((n) => parseInt(n.layer));
+    const LayersToBeAdded = LayerNums.length ? Math.max(...LayerNums) : 3;
+    for (let loop = 2; loop < LayersToBeAdded; loop++) {
         const newLayerBtnONLOAD = newLayerBtn();
     }
     userOnLayer = 1;
@@ -909,7 +908,6 @@ async function boot() {
         document.querySelectorAll('.LABT').forEach(b => b.classList.remove('active'));
         firstLayerBtn.classList.add('active');
     }
-    await SyncCounters();
     document.querySelectorAll(".path").forEach(p => {
         if (p)
             updatePath(p.children[0], p.children[1]);

@@ -307,15 +307,15 @@
               p.getAttribute("data-end") === node.id
             ) {
               const hitboxPath = p.parentElement?.querySelector(".pathHB") as SVGPathElement;
-              updatePath(p, hitboxPath);
+              updatePath(p as SVGPathElement, hitboxPath);
             }
           });
         });
         node.addEventListener("touchend", () => {
           const Ndata = state.nodes.find((n: SVGGElement) => n.id === node.id)
           if (!Ndata) return;
-          Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
-          Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
+          Ndata.x = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cx") ?? "0");
+          Ndata.y = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cy") ?? "0");
           JSONSave();
         })
         //Touch End
@@ -331,14 +331,14 @@
 
           const cursor = pt.matrixTransform(network.getScreenCTM()!.inverse());
 
-          Sdrag(circle, cursor.x, cursor.y);
+          Sdrag(circle as SVGCircleElement, cursor.x, cursor.y);
         });
           
           node.addEventListener("mouseup", () => {
             const Ndata = state.nodes.find((n: any)=> n.id === node.id)
             if (!Ndata) return;
-            Ndata.x = parseFloat(node.children[0].getAttribute("cx"));
-            Ndata.y = parseFloat(node.children[0].getAttribute("cy"));
+            Ndata.x = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cx") ?? "0");
+            Ndata.y = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cy") ?? "0");
             JSONSave();
           });
         //Mouse End
@@ -350,7 +350,7 @@
 
           resolveCollisions(ele);
           network.querySelectorAll(".path").forEach(pat => {
-            updatePath(pat.children[0], pat.children[1]);
+            updatePath(pat.children[0] as SVGPathElement, pat.children[1] as SVGPathElement);
           });
         }
       }
@@ -401,7 +401,7 @@
                 p.getAttribute("data-end") === otherGroup.id
               ) {
                 const hitboxPath = p.parentElement?.querySelector(".pathHB") || "";
-                updatePath(p, hitboxPath);
+                updatePath(p as SVGPathElement, hitboxPath as SVGPathElement);
               }
             });
           }
@@ -443,12 +443,13 @@
       });
       //Add End
       //Delete Start
-      const Delete = document.getElementById("deleteBtn");
+      const Delete = document.getElementById("deleteBtn")!;
       let deleteMode = false;
 
-      const DeleteClick = (e) => {
-        if (e.target.matches(".node") && deleteMode) {
-          const nodeGroup = e.target.parentElement;
+      const DeleteClick = (e: TouchEvent | MouseEvent) => {
+        const target = e.target as Element | null; 
+        if (target?.matches(".node") && deleteMode) {
+          const nodeGroup = target.parentElement;
           const nodeId = nodeGroup.id;
           nodeGroup.classList.add("deletingelement");
           network.querySelectorAll(".pathV").forEach((p) => {
@@ -483,7 +484,7 @@
         }
       };
 
-      Delete.addEventListener("click", (e) => {
+      Delete.addEventListener("click", () => {
         if (deleteMode) {
           guide.style.display = "none";
           document.removeEventListener("click", DeleteClick);
@@ -509,16 +510,15 @@
       });
       //Clear End
       //Layering Start
-      const layerMenu = document.querySelector(".layerBtns");
-      const newLayerMenu = document.querySelector(".createdLayerBtns");
+      const layerMenu = document.querySelector(".layerBtns")!;
+      const newLayerMenu = document.querySelector(".createdLayerBtns")!;
       
       const layer1Btn = document.getElementById("layer1Btn");
       const layer2Btn = document.getElementById("layer2Btn");
-      const layerAddBtn = document.getElementById("layerAddBtn");
-      const layerRemBtn = document.getElementById("layerRemBtn");
+      const layerAddBtn = document.getElementById("layerAddBtn")!;
+      const layerRemBtn = document.getElementById("layerRemBtn")!;
       
       let layerBtnCount = 2;
-      let layerButtons = {};
       
       let layerDeleteMode = false;
       
@@ -539,7 +539,7 @@
           b.classList.remove("SLBTN");
         });
         layer2Btn.classList.add("SLBTN");
-        view.dataset.currentLayer = " 2";
+        view.dataset.currentLayer = "2";
         JSONSave();
         userOnLayer = 2;
         JSONLoad("loadlayer");
@@ -573,7 +573,7 @@
         layerDeleteMode = false;
       }
       
-      function NewLayerBtnFuncAdd(ele, num) {
+      function NewLayerBtnFuncAdd(ele: HTMLElement, num: number) {
         ele.addEventListener("click", () => {
           if (layerDeleteMode) {
             DeletionAndRebuild(num);
@@ -596,11 +596,9 @@
       function newLayerBtn() {
         layerBtnCount++
         const newButton = document.createElement("button");
-        newButton.innerText = layerBtnCount;
-        newButton.dataset.layerProp = layerBtnCount;
+        newButton.innerText = String(layerBtnCount);
+        newButton.dataset.layerProp = String(layerBtnCount);
         NewLayerBtnFuncAdd(newButton, layerBtnCount);
-        
-        layerButtons["layer" + layerBtnCount + "Btn"] = newButton;
         
         newLayerMenu.appendChild(newButton);
         return newButton;
@@ -637,8 +635,8 @@
       //Zoom&Pan Start
       let isPanning = false;
 
-      let previousDist; //touch devices
-      let prevMidX, prevMidY;
+      let previousDist: number; //touch devices
+      let prevMidX: number, prevMidY: number;
 
       const StartHandler = (e: any) => { //dont question the any
       if (e.touches && e.touches.length === 2) {
@@ -729,10 +727,10 @@
       svg.addEventListener("wheel", DragPanHandler, { passive: false });
       //Zoom&Pan End
       //Settings Start
-      const settingsBtn = document.getElementById("settingsBtn");
+      const settingsBtn = document.getElementById("settingsBtn")!;
 
-      const popUp1 = document.getElementById("settingPop1");
-      const popUp2 = document.getElementById("settingPop2");
+      const popUp1 = document.getElementById("settingPop1")!;
+      const popUp2 = document.getElementById("settingPop2")!;
 
       const SP11 = document.getElementById("SP11")!; //4
       const SP12 = document.getElementById("SP12")!; //8
@@ -758,13 +756,13 @@
       });
 
       //Pathing Settings Start
-      const pathSettings = { //Map to avoid repetition in updating paths
+      const pathSettings: { [key:string]: string } = { //Map to avoid repetition in updating paths
         SP11: "4",           //after selection
         SP12: "8",
-        SP13: "Smooth",
+        SP13: "Smooth"
       };
 
-      function SettingPath(option) {
+      function SettingPath(option: HTMLElement) {
         if (pathSettings[option.id]) {
           pathOption = pathSettings[option.id];
           network.querySelectorAll(".path").forEach(pat => {
@@ -860,7 +858,7 @@
           } //no error catching since arg will always be the desired input
           else {
             arg.classList.add("colorSelected");
-            ApplyCol(arg);
+            ApplyCol(arg); 
             colorOptions.forEach((coul) => {
               if (coul == arg) return;
               coul.classList.remove("colorSelected");
@@ -1033,9 +1031,9 @@
         
         const firstLayerBtn = document.querySelector('.LABT');
         
-        const LayerNums = state.nodes.map((n: any) => n.layer);
-        const LayersToBeAdded = Math.max(...LayerNums) ;
-        for (let loop = 4; loop < LayersToBeAdded; loop++) {
+        const LayerNums = state.nodes.map((n: any) => parseInt(n.layer));
+        const LayersToBeAdded = LayerNums.length ? Math.max(...LayerNums) : 3;
+        for (let loop = 2; loop < LayersToBeAdded; loop++) {
           const newLayerBtnONLOAD = newLayerBtn();
         }
         
@@ -1047,7 +1045,6 @@
           firstLayerBtn.classList.add('active');
         }
         
-        await SyncCounters();
         document.querySelectorAll(".path").forEach(p => {
           if (p) updatePath(p.children[0] as SVGPathElement, p.children[1] as SVGPathElement)
         })

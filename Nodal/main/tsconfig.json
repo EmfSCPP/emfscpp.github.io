@@ -8,6 +8,8 @@
     "rootDir": ".",
 
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
