@@ -546,6 +546,14 @@
           newLayerBtn();
         }
         JSONSave();
+        
+        if (userOnLayer === layerNum) {
+          userOnLayer = layerNum - 1;
+        } else if (userOnLayer > layerNum) {
+          userOnLayer = userOnLayer - 1;
+        }
+        document.querySelector(`[data-layer-prop="${userOnLayer}"]`)?.classList.add("SLBTN");
+        
         JSONLoad("loadlayer");
         if (layerBtnCount == 2) {
           layerRemBtn.classList.remove("LRBT");
@@ -740,8 +748,8 @@
       });
 
       //Pathing Settings Start
-      const pathSettings: { [key:string]: string } = { //Map to avoid repetition in updating paths
-        SP11: "4",           //after selection
+      const pathSettings: { [key:string]: string } = {
+        SP11: "4",
         SP12: "8",
         SP13: "Smooth"
       };
@@ -959,8 +967,9 @@
            isLoading = false;
       }
       
-      async function boot() {
+      function boot() {
         const loadState = JSON.parse(localStorage.getItem("global-state") || "null") ;
+        //Initializiation
         state = loadState ? loadState :  {
           settings: [{
             nodecolor: "#73CFFF",
@@ -972,12 +981,25 @@
           nodes: [],
           paths: []
         };
+        //Assignment
         nodeCount = state.nodes.length + 1;
         pathCount = state.paths.length + 1;
         NodeCol = (state.settings && state.settings[0].nodecolor) ? state.settings[0].nodecolor : "#73CFFF";
         PathCol = (state.settings && state.settings[0].pathcolor) ? state.settings[0].pathcolor : "#FFFFFF";
         pathOption = (state.settings && state.settings[0].pathopt) ? state.settings[0].pathopt : "8";
         
+        //Visual Setup of Path Setting
+        const activePO = Object.keys(pathSettings).find(k => pathSettings[k] === pathOption); //activePO is activePathOption
+        Object.keys(pathSettings).forEach(k => {
+          const el = document.getElementById(k);
+          if (k === activePO) {
+            el?.classList.add("selected");
+          } else {
+            el?.classList.remove("selected");
+          }
+        });
+        
+        //Layer Setup
         const firstLayerBtn = document.querySelector('.LABT');
         
         const LayerNums = state.nodes.map((n: NodalNode) => parseInt(n.layer));
@@ -986,17 +1008,25 @@
           newLayerBtn();
         }
         
-        userOnLayer = 1; 
+        console.log("layerBtnCount:", layerBtnCount);
+        
+        if (layerBtnCount > 2 && layerBtnCount < 8) {
+          layerRemBtn.classList.remove("selected-layerbtn");
+          layerRemBtn.classList.add("LRBT");
+        }
+        
+        console.log(layerRemBtn.classList);
+        
+        userOnLayer = 1;
+        //Loading
         JSONLoad("loadfile");
         
+        //Indicator Activator of Current Layer
         if (firstLayerBtn) {
           document.querySelectorAll('.LABT').forEach(b => b.classList.remove('active'));
           firstLayerBtn.classList.add('active');
         }
         
-        document.querySelectorAll(".path").forEach(p => {
-          if (p) updatePath(p.children[0] as SVGPathElement, p.children[1] as SVGPathElement)
-        })
       }
       boot();
       //State Storage End
