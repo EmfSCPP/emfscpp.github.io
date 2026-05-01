@@ -190,3 +190,18 @@ NodalV5 -
   -Bounce out node deletion animation
   -Layer add animation
    Button slides in
+   
+May 1st 18:29 - 18:31 {
+   Choosing to change Layer Removal Mechanic. currently, when you remove a layer,
+   the data is wiped, then the createdLayerMenu is wiped, then it is rebuilt. Jargon
+   Instead i am moving to just removing the element (and the data of course).
+}
+May 1st 19:04 - 19:05 {
+   Changing the mechanic was not enough, i had to change the css as well. Specifity
+   did the trick. One animated added(Layer Button Shrinking Before Erasure)
+}
+May 1st 19:28 - 19:29 {
+    css is annoying, but thats fine. unless i am mad, my layer add button logic got
+    deleted somehow, i didnt do it, or maybe i did do it, but my memory is bad. i do
+    not know yet.
+}

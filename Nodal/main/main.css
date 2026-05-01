@@ -53,6 +53,21 @@
   animation: elementShrink 0.3s ease-in forwards;
   pointer-events: none; /* Prevent double-clicks during the death animation */
 }
+
+/* Using the parent class + the tag makes this very "strong" in CSS terms */
+.createdLayerBtns button.deletingelement {
+  animation: elementShrink 0.3s ease-in forwards !important;
+  pointer-events: none;
+  display: inline-block; /* Buttons need this for transform to work properly */
+}
+
+@keyframes denyAction {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-5px) rotate(-2deg); }
+  40% { transform: translateX(5px) rotate(2deg); }
+  60% { transform: translateX(-5px) rotate(-2deg); }
+  80% { transform: translateX(5px) rotate(2deg); }
+}
 /* Animations End */
 
 * {
@@ -140,7 +155,12 @@ h1 {
   background: linear-gradient(90deg, #e27676c8, #f75252c8);
 }
 
-.selected-layerbtn {
+.selected-layerbtn-Add {
+  transition: 0.3s;
+  background: linear-gradient(90deg, #b8d0eac8, #708fb1c8);
+}
+
+.selected-layerbtn-Delete {
   transition: 0.3s;
   background: linear-gradient(90deg, #b8d0eac8, #708fb1c8);
 }

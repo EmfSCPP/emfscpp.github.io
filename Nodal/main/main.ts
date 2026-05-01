@@ -507,6 +507,24 @@
       
       let layerDeleteMode = false;
       
+      function syncLayerButtonColors() {
+        if (layerBtnCount >= 8) {
+          layerAddBtn.classList.remove("LABT");
+          layerAddBtn.classList.add("limit-layerbtn-Add");
+        } else {
+          layerAddBtn.classList.add("LABT");
+          layerAddBtn.classList.remove("limit-layerbtn-Add");
+        }
+
+        if (layerBtnCount <= 2) {
+          layerRemBtn.classList.remove("LRBT");
+          layerRemBtn.classList.add("limit-layerbtn-Delete");
+        } else {
+          layerRemBtn.classList.add("LRBT");
+          layerRemBtn.classList.remove("limit-layerbtn-Delete");
+        }
+      }
+      
       layer1Btn.onclick = () => {
         if (userOnLayer == 1) return;
         document.querySelectorAll(".SLBTN").forEach(b => {
@@ -539,12 +557,12 @@
         state.paths.forEach((p: NodalPath) => {
           if (parseInt(p.layer) > layerNum) p.layer = String(parseInt(p.layer) - 1);
         });
-        const target = layerBtnCount - 1;
-        layerBtnCount = 2;
-        newLayerMenu.innerHTML = "";
-        for (let loop = 2; loop < target; loop++) {
-          newLayerBtn();
-        }
+        
+        const LayerToDie = document.querySelector(`[data-layer-prop="${layerNum}"]`);
+        LayerToDie?.classList.add("deletingelement")
+        setTimeout( () => {
+          LayerToDie?.remove();
+        }, 300);
         JSONSave();
         
         if (userOnLayer === layerNum) {
@@ -555,14 +573,7 @@
         document.querySelector(`[data-layer-prop="${userOnLayer}"]`)?.classList.add("SLBTN");
         
         JSONLoad("loadlayer");
-        if (layerBtnCount == 2) {
-          layerRemBtn.classList.remove("LRBT");
-          layerRemBtn.classList.add("selected-layerbtn");
-        }
-        if (layerBtnCount < 8) {
-          layerAddBtn.classList.remove("selected-layerbtn");
-          layerAddBtn.classList.add("LABT");
-          }
+        syncLayerButtonColors();
         layerDeleteMode = false;
       }
       
@@ -602,14 +613,8 @@
           layerBtnCount = 8;
           return;
         }
-        if (layerBtnCount >= 2) {
-          layerRemBtn.classList.remove("selected-layerbtn");
-          layerRemBtn.classList.add("LRBT");
-        }
         newLayerBtn();
-        if (layerBtnCount === 8) {
-          layerAddBtn.classList.add("selected-layerbtn");
-        }
+        syncLayerButtonColors();
       }
       
       layerRemBtn.onclick = () => {
@@ -916,7 +921,7 @@
       //Style Settings End
 
       //Settings End
-      //State Storage Start
+      //State Storage & Boot Start
       //state is defined at the top
       let isLoading = false;
       
@@ -1000,33 +1005,18 @@
         });
         
         //Layer Setup
-        const firstLayerBtn = document.querySelector('.LABT');
         
         const LayerNums = state.nodes.map((n: NodalNode) => parseInt(n.layer));
-        const LayersToBeAdded = LayerNums.length ? Math.max(...LayerNums) : 3;
+        const LayersToBeAdded = LayerNums.length ? Math.max(...LayerNums) : 2;
         for (let loop = 2; loop < LayersToBeAdded; loop++) {
           newLayerBtn();
         }
         
-        console.log("layerBtnCount:", layerBtnCount);
-        
-        if (layerBtnCount > 2 && layerBtnCount < 8) {
-          layerRemBtn.classList.remove("selected-layerbtn");
-          layerRemBtn.classList.add("LRBT");
-        }
-        
-        console.log(layerRemBtn.classList);
+        syncLayerButtonColors();
         
         userOnLayer = 1;
         //Loading
         JSONLoad("loadfile");
-        
-        //Indicator Activator of Current Layer
-        if (firstLayerBtn) {
-          document.querySelectorAll('.LABT').forEach(b => b.classList.remove('active'));
-          firstLayerBtn.classList.add('active');
-        }
-        
       }
       boot();
-      //State Storage End
+      //State Storage & Boot End
