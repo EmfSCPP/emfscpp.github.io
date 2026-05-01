@@ -1,6 +1,4 @@
-# READ IN RAW MODE
- 
- NodalV1 -
+NodalV1 -
 -The first version of the website
   Create graphs, with nodes and paths(no text currently)
   Goal :- To make a pico-LLM editor, or just a free, no subscription, graphing app
