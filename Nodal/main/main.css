@@ -129,22 +129,21 @@ h1 {
 }
 
 /*AI Code*/
-.layerBtns {
+.layerBtns .layers {
   display: flex;
   flex-direction: column; /* Stack buttons top to bottom */
   gap: 10px;              /* Space between buttons */
   padding: 15px;
-  background: rgba(30, 41, 59, 0.7); /* Match your editor's dark tint */
   border-radius: 15px;
   width: fit-content;
-  max-height: 80vh;        /* Prevent it from going off-screen */
+  max-height: 80vh;
 }
 
-.createdLayerBtns {
+.layerBtns .layers .createdLayerBtns {
   display: flex;
-  flex-direction: column; /* This forces 2, 3, 4 etc. to stack vertically */
+  flex-direction: column;
   gap: 10px;
-  width: 100%;           /* Make sure it takes up the full width of the parent */
+  width: 100%;
 }
 /*AI Code*/
 
@@ -155,19 +154,30 @@ h1 {
   background: linear-gradient(90deg, #e27676c8, #f75252c8);
 }
 
-.selected-layerbtn-Add {
+.limit-layerbtn-Add {
   transition: 0.3s;
   background: linear-gradient(90deg, #b8d0eac8, #708fb1c8);
 }
+.limit-layerbtn-Add:active {
+  animation: denyAction 0.4s ease-in-out;
+}
 
-.selected-layerbtn-Delete {
+.limit-layerbtn-Delete {
   transition: 0.3s;
   background: linear-gradient(90deg, #b8d0eac8, #708fb1c8);
+}
+.limit-layerbtn-Delete:active {
+  animation: denyAction 0.4s ease-in-out;
 }
 
 .SLBTN {
   transition: 0.3s;
   border: 2px solid white;
+}
+
+.createdLayerBtns button.RemovableLBTN {
+  transition: 0.3s;
+  border: 2px solid #e92f2fc8;
 }
 
 .layerBtns button {
@@ -177,12 +187,12 @@ h1 {
   font-size: 16px;
 }
 
-.controls button {
+.layerBtns .layerManipBtns button {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 5px;
   width: 100%;
 }
 

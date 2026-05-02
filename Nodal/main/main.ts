@@ -1,7 +1,11 @@
       const guide = document.getElementById("guide")!;
+      
       const svg = document.querySelector("#mainSvg") as SVGSVGElement;
       const view = document.getElementById("view") as unknown as SVGSVGElement;
       const network = document.getElementById("network") as unknown as SVGSVGElement;
+      const nodeNetwork = document.getElementById("nodes") as unknown as SVGGElement;
+      const pathNetwork = document.getElementById("paths") as unknown as SVGGElement;
+      
       const stylePopup = document.getElementById("stylePopup")!; // used in style settings
       
       //Interfaces Start(Typescript)
@@ -21,6 +25,53 @@
         color: string;
         draw: string;
       }
+      //Sounds Start
+      const ctx = new AudioContext();
+      
+      //Sounds are human-thought, but the embed code is AI generated
+      function playSound1(freq = 440, duration = 0.3, type = 'sine', volume = 0.3) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = type as OscillatorType;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      }
+      function playSound2() { //Original purpose was/is for path creation
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.type = 'sine';
+        osc2.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(220, ctx.currentTime);
+        osc2.frequency.setValueAtTime(223, ctx.currentTime);
+        osc1.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+        osc2.frequency.exponentialRampToValueAtTime(443, ctx.currentTime + 0.15);
+
+        filter.type = 'bandpass';
+        filter.frequency.value = 800;
+        filter.Q.value = 2;
+
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+
+        osc1.start();
+        osc1.stop(ctx.currentTime + 0.2);
+        osc2.start();
+        osc2.stop(ctx.currentTime + 0.2);
+      }
+      //Sounds End
 
       //State Management Start
       function getState() {
@@ -156,7 +207,10 @@
         pHitbox.setAttribute("fill", "none");
         PG.appendChild(path);
         PG.appendChild(pHitbox);
-        network.appendChild(PG);
+        pathNetwork.appendChild(PG);
+        
+        playSound2(); //path sound
+        
         updatePath(path, pHitbox);
         
         if (!isPathLoading) {
@@ -343,7 +397,7 @@
       const PADDING = 2;
 
       function resolveCollisions(movedNode: SVGCircleElement) {
-        const nodes = Array.from(network.querySelectorAll("circle"));
+        const nodes = Array.from(nodeNetwork.querySelectorAll("circle"));
         const ax = parseFloat(movedNode.getAttribute("cx") || "0");
         const ay = parseFloat(movedNode.getAttribute("cy") || "0");
 
@@ -379,7 +433,7 @@
               otherD.y = Y;
             }
             
-            network.querySelectorAll(".pathV").forEach((p) => {
+            pathNetwork.querySelectorAll(".pathV").forEach((p) => {
               if (
                 p.getAttribute("data-start") === otherGroup.id ||
                 p.getAttribute("data-end") === otherGroup.id
@@ -395,6 +449,7 @@
       //Collision End
       //Add Start
       const Add = document.getElementById("addBtn")!;
+      
       Add.addEventListener("click", () => {
         const NewNode = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -412,7 +467,7 @@
         NNG.classList.add("node");
         NewNode.classList.add("node");
         NNG.appendChild(NewNode);
-        network.appendChild(NNG);
+        nodeNetwork.appendChild(NNG);
         makeDraggable(NNG);
         const data = {
           id: "node" + nodeCount,
@@ -423,6 +478,9 @@
         }
         state.nodes.push(data);
         nodeCount++;
+        
+        playSound1();
+        
         JSONSave();
       });
       //Add End
@@ -433,6 +491,8 @@
       const DeleteClick = (e: TouchEvent | MouseEvent) => {
         const target = e.target as Element | null; 
         if (target?.matches(".node") && deleteMode) {
+          playSound1(180, 0.2, 'sawtooth', 0.2);
+          
           const nodeGroup = target.parentElement;
           if (!nodeGroup) return;
           const nodeId = nodeGroup.id;
@@ -458,6 +518,8 @@
           }, 300);
         }
         if (target?.matches(".pathHB") && deleteMode) {
+          playSound1(180, 0.2, 'sawtooth', 0.2);
+          
           const pg = (target as Element).parentElement;
           if (!pg) return;
           pg.classList.add("deletingelement");
@@ -496,6 +558,7 @@
       });
       //Clear End
       //Layering Start
+      const layerMenu = document.querySelector(".layers")!;
       const newLayerMenu = document.querySelector(".createdLayerBtns")!;
       
       const layer1Btn = document.getElementById("layer1Btn")!;
@@ -548,7 +611,7 @@
         JSONLoad("loadlayer");
       }
       
-      function DeletionAndRebuild(layerNum: number) {
+      function Deletion(layerNum: number) {
         state.nodes = state.nodes.filter((n: NodalNode) => parseInt(n.layer) !== layerNum);
         state.nodes.forEach((n: NodalNode) => {
           if (parseInt(n.layer) > layerNum) n.layer = String(parseInt(n.layer) - 1);
@@ -558,11 +621,26 @@
           if (parseInt(p.layer) > layerNum) p.layer = String(parseInt(p.layer) - 1);
         });
         
+        console.log("Looking for layer:", layerNum);
+        console.log("Found:", document.querySelector(`[data-layer-prop="${layerNum}"]`));
+        console.log("All layer props:", [...layerMenu.querySelectorAll("button")].map(b => (b as HTMLElement).dataset.layerProp));
+        
         const LayerToDie = document.querySelector(`[data-layer-prop="${layerNum}"]`);
         LayerToDie?.classList.add("deletingelement")
         setTimeout( () => {
           LayerToDie?.remove();
         }, 300);
+        const currentBtns = [...layerMenu.querySelectorAll("button")].filter(btn => !btn.classList.contains("deletingelement"));
+          currentBtns.forEach(btn => {
+            const layerProperty: string = btn.dataset.layerProp as string;
+            if (parseInt(layerProperty) > layerNum) {
+              btn.dataset.layerProp = `${parseInt(layerProperty) - 1}`
+              btn.innerText = `${parseInt(layerProperty) - 1}`
+            }
+          });
+        layerBtnCount--;
+        syncLayerButtonColors();
+        
         JSONSave();
         
         if (userOnLayer === layerNum) {
@@ -573,14 +651,14 @@
         document.querySelector(`[data-layer-prop="${userOnLayer}"]`)?.classList.add("SLBTN");
         
         JSONLoad("loadlayer");
-        syncLayerButtonColors();
         layerDeleteMode = false;
       }
       
-      function NewLayerBtnFuncAdd(ele: HTMLElement, num: number) {
+      function NewLayerBtnFuncAdd(ele: HTMLElement) {
         ele.addEventListener("click", () => {
+          const num = parseInt(ele.dataset.layerProp!)
           if (layerDeleteMode) {
-            DeletionAndRebuild(num);
+            Deletion(num);
             guide.textContent = "";
             guide.style.display = "none";
             return;
@@ -598,11 +676,16 @@
       }
       
       function newLayerBtn() {
-        layerBtnCount++
+        //Function to ignore Creator and Destroyer, Grouping, or a simple addition fix?
+        const existingBtns = layerMenu.querySelectorAll("button");
+        const newLayerNum = existingBtns.length + 1;
+        
         const newButton = document.createElement("button");
-        newButton.innerText = String(layerBtnCount);
-        newButton.dataset.layerProp = String(layerBtnCount);
-        NewLayerBtnFuncAdd(newButton, layerBtnCount);
+        newButton.innerText = String(newLayerNum);
+        newButton.dataset.layerProp = String(newLayerNum);
+        NewLayerBtnFuncAdd(newButton);
+        
+        layerBtnCount = newLayerNum;
         
         newLayerMenu.appendChild(newButton);
       }
@@ -619,14 +702,19 @@
       
       layerRemBtn.onclick = () => {
         layerDeleteMode = !layerDeleteMode;
+        const dynamicContainer = document.querySelector(".createdLayerBtns");
+        const removableLBTNs = dynamicContainer ? dynamicContainer.querySelectorAll("button") : [];
         if (layerDeleteMode) {
-          guide.style.display = "block";
-          guide.textContent = "Select Layer To Remove";
+          removableLBTNs.forEach(btn => {
+            btn.classList.add("removableLBTN")
+          });
         }
         else {
-          guide.style.display = "none";
-          guide.textContent = "";
+          removableLBTNs.forEach(btn => {
+            btn.classList.remove("removableLBTN")
+          });
         }
+        //red outline around removable layers code
       }
       //Layering End
       //Zoom&Pan Start
@@ -762,7 +850,7 @@
       function SettingPath(option: HTMLElement) {
         if (pathSettings[option.id]) {
           pathOption = pathSettings[option.id] ?? "";
-          network.querySelectorAll(".path").forEach(pat => {
+          pathNetwork.querySelectorAll(".path").forEach(pat => {
             const VPath = pat.children[0] as SVGPathElement;
             const HitPath = pat.children[1] as SVGPathElement;
             updatePath(VPath!, HitPath!);
@@ -934,42 +1022,42 @@
       localStorage.setItem("global-state", JSON.stringify(localState));
       }
       function JSONLoad(type: string) { //loadfile or loadlayer
-		   isLoading = true;
-           state = getState();
-           if (type == "loadfile") {
-             console.log("Loading localStorage global-state");
-           }
-           
-           network.innerHTML = "";
-           const onLayerNodes = state.nodes.filter((n: any) => parseInt(n.layer) == userOnLayer);
-           const onLayerPaths = state.paths.filter((p: any) => parseInt(p.layer) == userOnLayer);
-           onLayerNodes.forEach((n: any) => {
-			       const circG = document.createElementNS("http://www.w3.org/2000/svg", "g");
-             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-             circle.setAttribute("cx", n.x);
-             circle.setAttribute("cy", n.y);
-             circle.setAttribute("r", "40");
-             circle.setAttribute("fill", NodeCol)
-             circG.setAttribute("id", n.id);
-             circG.classList.add("node");
-             circle.setAttribute("data-on-layer", n.layer)
-             circle.classList.add("node");
-             circG.appendChild(circle);
-             network.appendChild(circG);
-             makeDraggable(circG);
-           });
+		    isLoading = true;
+        state = getState();
+        if (type == "loadfile") {
+          console.log("Loading localStorage global-state");
+        }
+        nodeNetwork.innerHTML = "";
+        pathNetwork.innerHTML = "";
+        const onLayerNodes = state.nodes.filter((n: any) => parseInt(n.layer) == userOnLayer);
+        const onLayerPaths = state.paths.filter((p: any) => parseInt(p.layer) == userOnLayer);
+        onLayerNodes.forEach((n: NodalNode) => {
+			    const circG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          circle.setAttribute("cx", n.x);
+          circle.setAttribute("cy", n.y);
+          circle.setAttribute("r", "40");
+          circle.setAttribute("fill", NodeCol)
+          circG.setAttribute("id", n.id);
+          circG.classList.add("node");
+          circle.setAttribute("data-on-layer", n.layer)
+          circle.classList.add("node");
+          circG.appendChild(circle);
+          nodeNetwork.appendChild(circG);
+          makeDraggable(circG);
+        });
   
-           onLayerPaths.forEach((p: any) => {
-             const startN = document.getElementById(p.x) as unknown as SVGCircleElement;
-             const endN = document.getElementById(p.y) as unknown as SVGCircleElement;
-             if (startN && endN) {
-				      NodeStart = startN;
-				      NodeEnd = endN;
-				      drawPath(startN, endN, true);
-			       }
-             // grouping and other SVG stuff is handled by drawPath
-           });
-           isLoading = false;
+        onLayerPaths.forEach((p: any) => {
+          const startN = document.getElementById(p.x) as unknown as SVGCircleElement;
+          const endN = document.getElementById(p.y) as unknown as SVGCircleElement;
+          if (startN && endN) {
+				    NodeStart = startN;
+				    NodeEnd = endN;
+				    drawPath(startN, endN, true);
+			     }
+          // grouping and other SVG stuff is handled by drawPath
+        });
+        isLoading = false;
       }
       
       function boot() {

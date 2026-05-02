@@ -40,18 +40,27 @@
         <svg id="mainSvg" viewBox="-400 -400 800 800">
           <g id="view" data-current-layer="1">
             <g id="network">
-              
+              <g id="paths">
+                
+              </g>
+              <g id="nodes">
+                
+              </g>
             </g>
           </g>
         </svg>
         <div class="layerBtns">
-          <button id="layer1Btn" class="SLBTN" data-layer-prop="1">1</button>
-          <button id="layer2Btn" data-layer-prop="2">2</button>
+          <div class="layers">
+            <button id="layer1Btn" class="SLBTN" data-layer-prop="1">1</button>
+            <button id="layer2Btn" data-layer-prop="2">2</button>
             <div class="createdLayerBtns">
-              
+            
             </div>
-          <button id="layerAddBtn" class="LABT" data-layer-prop="creator">&#10065;+</button>
-          <button id="layerRemBtn" class="selected-layerbtn" data-layer-prop="destroyer">&#10065;-</button>
+          </div>
+          <div class="layerManipBtns">
+            <button id="layerAddBtn" class="LABT" data-layer-prop="creator">&#10065;+</button>
+            <button id="layerRemBtn" class="selected-layerbtn" data-layer-prop="destroyer">&#10065;-</button>
+          </div>
         </div>
       </div>
       <p id="guide" class="guide"></p>
