@@ -189,6 +189,9 @@ NodalV5 -
   -Layer add animation
    Button slides in
    
+   
+//TIMEZONE IST
+//The times shown are the start time and end time of writing that note
 May 1st 18:29 - 18:31 {
    Choosing to change Layer Removal Mechanic. currently, when you remove a layer,
    the data is wiped, then the createdLayerMenu is wiped, then it is rebuilt. Jargon
@@ -202,4 +205,40 @@ May 1st 19:28 - 19:29 {
     css is annoying, but thats fine. unless i am mad, my layer add button logic got
     deleted somehow, i didnt do it, or maybe i did do it, but my memory is bad. i do
     not know yet.
+}
+May 1st 20:13 - 20:14 {
+    13 minutes past wind down time and i still havent fixed layerBtnCount counting.
+}
+May 2nd 13:10 - 13:11 {
+    I very much yearn for a deterministic coding environment, otherwise
+    debugging turns very nightmarish, or it may just simple be a lack of proficiency
+}
+May 2nd 13:34 - 13:36 {
+    I desperately need a determinsitic coding environment. clicks with time gaps 
+    less than 300ms cause counting layers to get quirky since we may accidentally
+    count the element that is being deleted
+}
+May 2nd 14:04 - 14:06 {
+    There is an adundance of deprecated lines of code in my css file, i believe.
+    functionality issues, i believe, are fixed, i only need to style the website
+    properly
+}
+May 2nd 14:35 - 14:37 {
+    Added embedded sounds. suggested sounds to claude sonnet, got embed code.
+    sounds are short and lively, specifically, bouncy.
+    i am slightly displeased with the width of the layer manipulation buttons
+    
+    i am going to take a break and play some hive bedwars.
+}
+May 2nd 16:55 - 16:57 {
+    my skill in bedwars is unnaturally low. i cannot blame the device
+    there are very good mobile players.
+}
+May 2nd 17:25 - 17:26 {
+    Changed HTML structure of svg such that nodes are always rendered on top of
+    paths
+}
+May 2nd 20:01 - 20:02 {
+    procrastinated by watching minecraft bedwars videos instead of coding.
+    will do better next time. wind down time is here
 }
