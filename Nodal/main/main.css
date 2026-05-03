@@ -175,7 +175,7 @@ h1 {
   border: 2px solid white;
 }
 
-.createdLayerBtns button.RemovableLBTN {
+.RemovableLBTN {
   transition: 0.3s;
   border: 2px solid #e92f2fc8;
 }

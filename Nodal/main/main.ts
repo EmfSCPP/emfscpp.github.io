@@ -14,7 +14,6 @@
         x: string; //cx
         y: string; //cy
         layer: string;
-        color: string;
       }
       
       interface NodalPath {
@@ -22,7 +21,6 @@
         x: string; //startNode id
         y: string; //endNode id
         layer: string;
-        color: string;
         draw: string;
       }
       //Sounds Start
@@ -219,7 +217,6 @@
             x: NodeStart!.id,
             y: NodeEnd!.id,
             layer: userOnLayer,
-            color: PathCol,
             draw: ""
           }
           state.paths.push(data)
@@ -317,12 +314,14 @@
           const circle = node.querySelector("circle");
 
           if (drag && circle) {
-            circle.setAttribute("r", "42");
+            circle.setAttribute("r", "40");
             circle.setAttribute("stroke", "#EFFFFA");
             circle.setAttribute("stroke-width", "4");
+            showPopup(node);
           } else if ((!drag) && circle){
             circle.setAttribute("r", "40");
             circle.setAttribute("stroke-width", "0");
+            removePopup(node);
           }
         });
         
@@ -385,6 +384,9 @@
         if (ele && typeof ele.setAttribute === "function") {
           ele.setAttribute("cx", `${x}`);
           ele.setAttribute("cy", `${y}`);
+          
+          const corInPop = infoPopupSection.querySelector(`#popup-${ele.parentElement?.id}`);//corresponding info popup
+          corInPop?.setAttribute("transform", `translate(${x + 50}, ${y})`);
 
           resolveCollisions(ele);
           network.querySelectorAll(".path").forEach(pat => {
@@ -474,7 +476,6 @@
           x: -transX / scale,
           y: -transY / scale,
           layer: userOnLayer,
-          color: NodeCol
         }
         state.nodes.push(data);
         nodeCount++;
@@ -549,7 +550,8 @@
       const clearBtn = document.getElementById("clearBtn")!;
       clearBtn.addEventListener("click", () => {
         if (confirm("Clear all nodes and paths?")) {
-          network.innerHTML = "";
+          nodeNetwork.innerHTML = "";
+          pathNetwork.innerHTML= "";
           localStorage.clear();
           state = { settings: [], nodes: [], paths: [] };
           nodeCount = 1;
@@ -557,6 +559,34 @@
         }
       });
       //Clear End
+      //Info Popup Start
+      const infoPopupSection = document.getElementById("infoPopups") as unknown as SVGGElement;
+      
+      function showPopup(node: SVGGElement) {
+        const nodeData = state.nodes.find((n: NodalNode) => n.id === node.id);
+        //Find how many paths' have it as an end-node
+        const displayInputs = [...pathNetwork.querySelectorAll(".pathV")].filter(path => path.getAttribute("data-end") === node.id).length;
+        //Find how many paths' have it as a start-node
+        const displayOutputs = [...pathNetwork.querySelectorAll(".pathV")].filter(path => path.getAttribute("data-start") === node.id).length;
+        const SVGstructure = `<g class="infoPopup" id="popup-${node.id}" transform="translate(${parseInt(nodeData.x + 50)}, ${nodeData.y})">
+                <rect width="175" height="210" x="10" y="10" rx="20" ry="20" fill="white" stroke="#000000d5" stroke-width="1"/>
+                <text x="78" y="60" font-size="30" text-anchor="middle" fill="black">${(node.id).replace("node", "Node")}</text>
+                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" transform="translate(129.6, 40) scale(1.13)"/>
+                <text x="40" y="90" font-size="14" text-anchor="start" fill="black">ID: ${node.id}</text>
+                <text x="40" y="120" font-size="14" text-anchor="start" fill="black">Inputs: ${displayInputs}</text>
+                <text x="40" y="150" font-size="14" text-anchor="start" fill="black">Outputs: ${displayOutputs}</text>
+              </g>`
+        const SVG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        SVG.innerHTML = SVGstructure;
+        infoPopupSection.appendChild(SVG);
+      }
+      
+      function removePopup(node: SVGGElement) {
+        const removeInfo = infoPopupSection.querySelector(`#popup-${node.id}`);
+        removeInfo?.remove()
+      }
+      
+      //Info Popup End
       //Layering Start
       const layerMenu = document.querySelector(".layers")!;
       const newLayerMenu = document.querySelector(".createdLayerBtns")!;
