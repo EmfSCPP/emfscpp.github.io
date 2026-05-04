@@ -288,6 +288,12 @@ NodalV6 -
   the issue was an omission of "if (!drag) return" in the mousemove event listener.
 - Fixed a bug where if you overlap nodes(by pushing it with a node), and they were connected by a path(remember, the path was made after the node, so it is on top of the z-index), the paths start to look glitchy and buggy
   i changed the html structure such that nodes are always on top of paths
+  
+  <g id="network">
+    <g id="paths"></g>
+    <g id="nodes"></g>
+    <g id="infoPopups"></g>
+  </g>
 
 - The increased width of the layer add and delete buttons were not intentional, but it was nice
 - The layer add and delete buttons become grey and shake if the action is not possible(or more accurately, prevented)
@@ -296,9 +302,3 @@ NodalV6 -
   - path creation sound
   - node and path deletion sound
 Will add more later
-
-  <g id="network">
-    <g id="paths"></g>
-    <g id="nodes"></g>
-    <g id="infoPopups"></g>
-  </g>
