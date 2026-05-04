@@ -242,3 +242,63 @@ May 2nd 20:01 - 20:02 {
     procrastinated by watching minecraft bedwars videos instead of coding.
     will do better next time. wind down time is here
 }
+May 3rd 16:15 - 16:19 {
+    i am getting better at bedwars, but i shall not make it my first priority
+    i am prototyping with a popup style right now, here is what ive come up with so far
+    
+    inside the network svg group for now:
+    <g id="info-popup">
+      <rect width="150" height="200" x="10" y="10" rx="20" ry="20" fill="white" stroke="#000000d5" stroke-width="1"/>
+      <text x="78" y="60" font-size="30" text-anchor="middle" fill="black">Node1</text>
+      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" transform="translate(127, 40) scale(1.13)"/>
+      <text x="60" y="90" font-size="16" text-anchor="middle" fill="black">ID: </text>
+      <text x="78" y="120" font-size="16" text-anchor="middle" fill="black">Inputs: </text>
+    </g>
+    
+    it may just be me, but i think we need to calculate the x coordinate based on the number of chars in given data from backend.
+}
+May 3rd 17:30 - 17:32 {
+    Since im developing Nodal on a tablet, its hard to cater to Keyboard and Mouse users, or users with big moniters
+    
+    Issue - Scrollable Window in landscape mode and for big moniters
+    Issue - Dragging with mice is glitchy, it does not feel smooth
+}
+May 3rd 19:11 - 19:12 {
+    I completed, for now, i believe, the functionality part of the info popups
+    i will have to try and fix the positioning of the info popups as well
+}
+May 3rd 19:52 - 19:53 {
+    wind down time is approaching, code looks slightly or largely unclean from the amounts of "getAttribute"
+    getting the tracking working, then sleeping, and cleaning code tomorrow
+}
+May 4th 13:33 - 13:40 {
+    I believe, for now, NodalV6 is ready. it has limited number of new features
+    but that is fine. It is still good. 
+    after 7 minutes
+    i am going to try and animate something.
+}
+
+NodalV6 -
+- Added info popups for nodes that show information of nodes, specifically
+  - a nodes' id
+  - how many inputs it has (in code, how many paths have that node as data-end)
+  - how many outputs it has (how many paths have it as data-start)
+- Added animated chevron arrows to paths to indicate the flow. will be useful for the actual purpose of Nodal
+- Fixed a bug where if you clicked(selected) a node, it would jitter/snap to your finger, even if you didnt drag
+  the issue was an omission of "if (!drag) return" in the mousemove event listener.
+- Fixed a bug where if you overlap nodes(by pushing it with a node), and they were connected by a path(remember, the path was made after the node, so it is on top of the z-index), the paths start to look glitchy and buggy
+  i changed the html structure such that nodes are always on top of paths
+
+- The increased width of the layer add and delete buttons were not intentional, but it was nice
+- The layer add and delete buttons become grey and shake if the action is not possible(or more accurately, prevented)
+- Added sounds(Claude Generated The Embed Code)
+  - node creation sound
+  - path creation sound
+  - node and path deletion sound
+Will add more later
+
+  <g id="network">
+    <g id="paths"></g>
+    <g id="nodes"></g>
+    <g id="infoPopups"></g>
+  </g>

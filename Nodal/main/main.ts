@@ -189,20 +189,48 @@
         //PG = Path Group
         const PG = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-        PG.setAttribute("id", "path" + pathCount);
-        PG.classList.add("path");
         path.classList.add("pathV");
+        path.setAttribute("id", `pathV${pathCount}`);
         path.setAttribute("fill", "none");
         path.setAttribute("stroke", PathCol);
         path.setAttribute("stroke-width", "3.6");
         path.setAttribute("stroke-linecap", "round");
+        //path.setAttribute("marker-end", "url(#arrowhead)") for future update FUP
         path.setAttribute("data-start", NodeStart!.id);
         path.setAttribute("data-end", NodeEnd!.id);
-        PG.setAttribute("data-on-layer", String(userOnLayer));
+        
         pHitbox.classList.add("pathHB");
         pHitbox.setAttribute("stroke", "transparent");
         pHitbox.setAttribute("stroke-width", "10");
         pHitbox.setAttribute("fill", "none");
+        
+        const arrowDot = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+        const chevron = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        chevron.setAttribute("points", "-8 -6, 0 0, -8 6");
+        chevron.setAttribute("fill", "none");
+        chevron.setAttribute("stroke", "white");
+        chevron.setAttribute("stroke-width", "1.5");
+        chevron.setAttribute("stroke-linecap", "round");
+        chevron.setAttribute("stroke-linejoin", "round");
+        chevron.setAttribute("transform", "scale(2.2)")
+
+        const animMotion = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+        animMotion.setAttribute("dur", "1s");
+        animMotion.setAttribute("repeatCount", "indefinite");
+        animMotion.setAttribute("rotate", "auto");
+
+        const mpath = document.createElementNS("http://www.w3.org/2000/svg", "mpath");
+        mpath.setAttribute("href", `#pathV${pathCount}`);
+
+        animMotion.appendChild(mpath);
+        arrowDot.appendChild(chevron);
+        arrowDot.appendChild(animMotion);
+        
+        PG.setAttribute("id", "path" + pathCount);
+        PG.classList.add("path");
+        PG.setAttribute("data-on-layer", String(userOnLayer));
+        PG.appendChild(arrowDot);
         PG.appendChild(path);
         PG.appendChild(pHitbox);
         pathNetwork.appendChild(PG);
@@ -220,8 +248,8 @@
             draw: ""
           }
           state.paths.push(data)
-          pathCount++;
         }
+        pathCount++;
         JSONSave();
       }
 
@@ -358,6 +386,7 @@
         //Touch End
         //Mouse Start     
         node.addEventListener("mousemove", (e: MouseEvent) => {
+          if (!drag) return;
           if (pathMode || deleteMode) return;
           e.stopPropagation();
 
@@ -385,8 +414,8 @@
           ele.setAttribute("cx", `${x}`);
           ele.setAttribute("cy", `${y}`);
           
-          const corInPop = infoPopupSection.querySelector(`#popup-${ele.parentElement?.id}`);//corresponding info popup
-          corInPop?.setAttribute("transform", `translate(${x + 50}, ${y})`);
+          const corInPop = infoPopupSection.querySelector(`#popup-${ele.parentElement?.id}`);
+          corInPop?.setAttribute("transform", `translate(${x - 95}, ${y + 60})`);
 
           resolveCollisions(ele);
           network.querySelectorAll(".path").forEach(pat => {
@@ -568,8 +597,8 @@
         const displayInputs = [...pathNetwork.querySelectorAll(".pathV")].filter(path => path.getAttribute("data-end") === node.id).length;
         //Find how many paths' have it as a start-node
         const displayOutputs = [...pathNetwork.querySelectorAll(".pathV")].filter(path => path.getAttribute("data-start") === node.id).length;
-        const SVGstructure = `<g class="infoPopup" id="popup-${node.id}" transform="translate(${parseInt(nodeData.x + 50)}, ${nodeData.y})">
-                <rect width="175" height="210" x="10" y="10" rx="20" ry="20" fill="white" stroke="#000000d5" stroke-width="1"/>
+        const SVGstructure = `<g class="infoPopup" id="popup-${node.id}" transform="translate(${nodeData.x - 95}, ${nodeData.y + 60})">
+                <rect width="175" height="210" x="10" y="10" rx="8" ry="8" fill="white" stroke="#000000d5" stroke-width="1"/>
                 <text x="78" y="60" font-size="30" text-anchor="middle" fill="black">${(node.id).replace("node", "Node")}</text>
                 <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" transform="translate(129.6, 40) scale(1.13)"/>
                 <text x="40" y="90" font-size="14" text-anchor="start" fill="black">ID: ${node.id}</text>
@@ -1057,6 +1086,7 @@
         if (type == "loadfile") {
           console.log("Loading localStorage global-state");
         }
+        infoPopupSection.innerHTML = "";
         nodeNetwork.innerHTML = "";
         pathNetwork.innerHTML = "";
         const onLayerNodes = state.nodes.filter((n: any) => parseInt(n.layer) == userOnLayer);
