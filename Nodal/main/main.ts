@@ -135,6 +135,8 @@
           guide.style.display = "none";
           document.removeEventListener("click", clickOne);
           document.removeEventListener("click", clickTwo);
+          document.removeEventListener("touchend", clickOne);
+          document.removeEventListener("touchend", clickTwo);
           pathMode = false;
           return;
         }
@@ -142,6 +144,7 @@
         guide.style.display = "block";
         guide.textContent = "Select Start Node";
         document.addEventListener("click", clickOne);
+        document.addEventListener("touchend", clickOne)
       });
 
       const clickOne = (e: MouseEvent | TouchEvent) => {
@@ -153,7 +156,9 @@
           NodeStart = startNode as any;
           guide.textContent = "Select End Node";
           document.removeEventListener("click", clickOne);
+          document.removeEventListener("touchend", clickOne);
           document.addEventListener("click", clickTwo);
+          document.addEventListener("touchend", clickTwo)
         }
       };
 
@@ -164,19 +169,15 @@
         if (target.tagName == "circle") {
           const endNode = target.parentElement as SVGGElement | null; 
           NodeEnd = endNode as any;
-          drawPath(NodeStart!, NodeEnd!);
+          drawPath(NodeStart!, NodeEnd!, false, true);
           guide.style.display = "none";
-          const circles = network.querySelectorAll("circle");
-          circles.forEach((circle) => {
-            circle.setAttribute("stroke-width", "0");
-            circle.setAttribute("r", "40");
-          });
           document.removeEventListener("click", clickTwo);
+          document.removeEventListener("touchend", clickTwo);
           pathMode = false;
         }
       };
 
-      function drawPath(Start: SVGCircleElement, End: SVGCircleElement, isPathLoading: boolean = false) {
+      function drawPath(Start: SVGCircleElement, End: SVGCircleElement, isPathLoading: boolean = false, playSoundBool: boolean) {
         if (Start == End) return;
         const path = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -235,7 +236,7 @@
         PG.appendChild(pHitbox);
         pathNetwork.appendChild(PG);
         
-        playSound2(); //path sound
+        if (playSoundBool) playSound2(); //path sound
         
         updatePath(path, pHitbox);
         
@@ -335,6 +336,7 @@
       //Drag Start
       function makeDraggable(node: SVGGElement) {
         let drag = false;
+        let touchMoved = false;
 
         node.addEventListener("click", () => {
           if (pathMode || deleteMode) return;
@@ -354,7 +356,11 @@
         });
         
         //Touch Start
+        node.addEventListener("touchstart", () => {
+          touchMoved = false;
+        })
         node.addEventListener("touchmove", (e: TouchEvent) => {
+          touchMoved = true;
           if (!drag) return;
 
           const circle = node.querySelector("circle") as SVGCircleElement;
@@ -366,7 +372,7 @@
 
           Sdrag(circle, finger.x, finger.y);
 
-          network.querySelectorAll(".pathV").forEach((p) => {
+          pathNetwork.querySelectorAll(".pathV").forEach((p) => {
             if (
               p.getAttribute("data-start") === node.id ||
               p.getAttribute("data-end") === node.id
@@ -376,7 +382,23 @@
             }
           });
         });
-        node.addEventListener("touchend", () => {
+        node.addEventListener("touchend", (e) => {
+          if (!touchMoved) {
+            e.preventDefault();
+            drag = !drag;
+            const circle = node.querySelector("circle");
+            if (drag && circle) {
+              circle.setAttribute("r", "40");
+              circle.setAttribute("stroke", "#EFFFFA");
+              circle.setAttribute("stroke-width", "4");
+              showPopup(node);
+            } else if (!drag && circle) {
+              circle.setAttribute("r", "40");
+              circle.setAttribute("stroke-width", "0");
+              removePopup(node);
+            }
+            return;
+          }
           const Ndata = state.nodes.find((n: SVGGElement) => n.id === node.id)
           if (!Ndata) return;
           Ndata.x = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cx") ?? "0");
@@ -401,7 +423,7 @@
         });
           
           node.addEventListener("mouseup", () => {
-            const Ndata = state.nodes.find((n: any)=> n.id === node.id)
+            const Ndata = state.nodes.find((n: NodalNode)=> n.id === node.id)
             if (!Ndata) return;
             Ndata.x = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cx") ?? "0");
             Ndata.y = parseFloat((node.children[0] as SVGCircleElement)?.getAttribute("cy") ?? "0");
@@ -418,8 +440,8 @@
           corInPop?.setAttribute("transform", `translate(${x - 95}, ${y + 60})`);
 
           resolveCollisions(ele);
-          network.querySelectorAll(".path").forEach(pat => {
-            updatePath(pat.children[0] as SVGPathElement, pat.children[1] as SVGPathElement);
+          pathNetwork.querySelectorAll(".path").forEach(pat => {
+            updatePath(pat.children[1] as SVGPathElement, pat.children[2] as SVGPathElement);
           });
         }
       }
@@ -458,7 +480,12 @@
             const otherGroup = other.parentElement;
             if (!otherGroup) return;
             
-            const otherD = state.nodes.find((n: any) => n.id === otherGroup.id);
+            const otherPopup = infoPopupSection.querySelector(`#popup-${otherGroup.getAttribute("id")}`);
+            if (otherPopup) {
+              otherPopup.setAttribute("transform", `translate(${X - 95}, ${Y + 60})`)
+            }
+            
+            const otherD = state.nodes.find((n: NodalNode) => n.id === otherGroup.id);
             if (otherD) {
               otherD.x = X;
               otherD.y = Y;
@@ -526,15 +553,16 @@
           const nodeGroup = target.parentElement;
           if (!nodeGroup) return;
           const nodeId = nodeGroup.id;
+          removePopup(nodeGroup); //here, to avoid seeing the popup while deletion is happening
           nodeGroup.classList.add("deletingelement");
-          network.querySelectorAll(".pathV").forEach((p) => {
+          pathNetwork.querySelectorAll(".pathV").forEach((p) => {
               if (
                 p.getAttribute("data-start") === nodeId ||
                 p.getAttribute("data-end") === nodeId
               ) p.parentElement?.classList.add("deletingelement");
             });
           setTimeout( () => {
-            network.querySelectorAll(".pathV").forEach((p) => {
+            pathNetwork.querySelectorAll(".pathV").forEach((p) => {
               if (
                 p.getAttribute("data-start") === nodeId ||
                 p.getAttribute("data-end") === nodeId
@@ -545,9 +573,10 @@
             nodeGroup.remove();
             guide.style.display = "none";
             deleteMode = !deleteMode;
+            JSONSave()
           }, 300);
         }
-        if (target?.matches(".pathHB") && deleteMode) {
+        if ((target?.matches(".pathV") || target?.matches(".pathHB")) && deleteMode) {
           playSound1(180, 0.2, 'sawtooth', 0.2);
           
           const pg = (target as Element).parentElement;
@@ -558,6 +587,7 @@
             pg.remove();
             guide.style.display = "none";
             deleteMode = !deleteMode;
+            JSONSave()
           }, 300);
         }
       };
@@ -566,6 +596,7 @@
         if (deleteMode) {
           guide.style.display = "none";
           document.removeEventListener("click", DeleteClick);
+          document.removeEventListener("touchend", DeleteClick);
           deleteMode = false;
           return;
         }
@@ -573,6 +604,7 @@
         guide.style.display = "block";
         guide.textContent = "Select Node/Path To Delete";
         document.addEventListener("click", DeleteClick);
+        document.addEventListener("touchend", DeleteClick);
       });
       //Delete End
       //Clear Start
@@ -581,6 +613,7 @@
         if (confirm("Clear all nodes and paths?")) {
           nodeNetwork.innerHTML = "";
           pathNetwork.innerHTML= "";
+          infoPopupSection.innerHTML = "";
           localStorage.clear();
           state = { settings: [], nodes: [], paths: [] };
           nodeCount = 1;
@@ -610,7 +643,7 @@
         infoPopupSection.appendChild(SVG);
       }
       
-      function removePopup(node: SVGGElement) {
+      function removePopup(node: SVGGElement | HTMLElement) {
         const removeInfo = infoPopupSection.querySelector(`#popup-${node.id}`);
         removeInfo?.remove()
       }
@@ -680,10 +713,6 @@
           if (parseInt(p.layer) > layerNum) p.layer = String(parseInt(p.layer) - 1);
         });
         
-        console.log("Looking for layer:", layerNum);
-        console.log("Found:", document.querySelector(`[data-layer-prop="${layerNum}"]`));
-        console.log("All layer props:", [...layerMenu.querySelectorAll("button")].map(b => (b as HTMLElement).dataset.layerProp));
-        
         const LayerToDie = document.querySelector(`[data-layer-prop="${layerNum}"]`);
         LayerToDie?.classList.add("deletingelement")
         setTimeout( () => {
@@ -718,6 +747,10 @@
           const num = parseInt(ele.dataset.layerProp!)
           if (layerDeleteMode) {
             Deletion(num);
+            const removableLBTNs = newLayerMenu.querySelectorAll("button");
+            removableLBTNs.forEach(btn => {
+              btn.classList.remove("RemovableLBTN") //HERE
+            });
             guide.textContent = "";
             guide.style.display = "none";
             return;
@@ -761,17 +794,19 @@
       
       layerRemBtn.onclick = () => {
         layerDeleteMode = !layerDeleteMode;
-        const dynamicContainer = document.querySelector(".createdLayerBtns");
-        const removableLBTNs = dynamicContainer ? dynamicContainer.querySelectorAll("button") : [];
+        const removableLBTNs = newLayerMenu.querySelectorAll("button");
         if (layerDeleteMode) {
           removableLBTNs.forEach(btn => {
-            btn.classList.add("removableLBTN")
+            btn.classList.add("RemovableLBTN")
           });
+          guide.textContent = "Select Layer To Delete";
+          guide.style.display = "block";
         }
         else {
           removableLBTNs.forEach(btn => {
-            btn.classList.remove("removableLBTN")
+            btn.classList.remove("RemovableLBTN")
           });
+          guide.style.display = "none";
         }
         //red outline around removable layers code
       }
@@ -782,30 +817,39 @@
       let previousDist: number; //touch devices
       let prevMidX: number, prevMidY: number;
 
-      const StartHandler = (e: any) => { //dont question the any
-      if (e.touches && e.touches.length === 2) {
-          const dx = e.touches[0].clientX - e.touches[1].clientX;
-          const dy = e.touches[0].clientY - e.touches[1].clientY;
-          previousDist = Math.sqrt(dx * dx + dy * dy);
+      const StartHandler = (e: TouchEvent | MouseEvent) => {
+        const touchE = e instanceof TouchEvent ? e : null;
+        const mouseE = e instanceof MouseEvent ? e : null;
+        if (touchE) {
+          if (touchE.touches.length === 2) {
+            const dx = touchE.touches[0]!.clientX - touchE.touches[1]!.clientX;
+            const dy = touchE.touches[0]!.clientY - touchE.touches[1]!.clientY;
+            previousDist = Math.sqrt(dx * dx + dy * dy);
+            prevMidX = (touchE.touches[0]!.clientX + touchE.touches[1]!.clientX) / 2;
+            prevMidY = (touchE.touches[0]!.clientY + touchE.touches[1]!.clientY) / 2;
+          }
         }
-        prevMidX = e.touches && e.touches.length > 1 ? (e.touches[0].clientX + e.touches[1].clientX) / 2 : e.clientX;
-        prevMidY = e.touches && e.touches.length > 1 ? (e.touches[0].clientY + e.touches[1].clientY) / 2 : e.clientY;
+        else if (mouseE) {
+          prevMidX = mouseE.clientX;
+          prevMidY = mouseE.clientY;
+        }
       };
+      //Telling tsc to shut up, since we already check if e.touches exists on line 821
 
       let rafPending = false;
 
-      const DragPanHandler = (e: any) => { //dont question the any
-        if (e.type === "mousemove" && !isPanning) return;
-        const MidX =
-          e.touches && e.touches.length > 1
-            ? (e.touches[0].clientX + e.touches[1].clientX) / 2
-            : e.clientX;
-        const MidY =
-          e.touches && e.touches.length > 1
-            ? (e.touches[0].clientY + e.touches[1].clientY) / 2
-            : e.clientY;
+      const DragPanHandler = (e: TouchEvent | MouseEvent | WheelEvent) => {
+        const touchE = e instanceof TouchEvent ? e : null;
+        const mouseE = e instanceof MouseEvent && !(e instanceof WheelEvent) ? e : null;
+        const wheelE = e instanceof WheelEvent ? e : null;
+        
+        if (mouseE && !isPanning) return;
+        
+        const MidX = touchE && touchE.touches.length > 1 ? (touchE.touches[0]!.clientX + touchE.touches[1]!.clientX) / 2 : (mouseE ?? wheelE)!.clientX;
+        const MidY = touchE && touchE.touches.length > 1 ? (touchE.touches[0]!.clientY + touchE.touches[1]!.clientY) / 2 : (mouseE ?? wheelE)!.clientY;
 
         if (!isFinite(MidX) || !isFinite(MidY)) return;
+        
         const ctm = svg.getScreenCTM();
         if (!ctm) return;
         const point = svg.createSVGPoint();
@@ -820,17 +864,17 @@
         let scaleRatio = 1;
         let intendedScale;
 
-        if (e.touches && e.touches.length == 2) {
-          const Mdx = e.touches[0].clientX - e.touches[1].clientX;
-          const Mdy = e.touches[0].clientY - e.touches[1].clientY;
+        if (touchE && touchE.touches.length == 2) {
+          const Mdx = touchE.touches[0]!.clientX - touchE.touches[1]!.clientX;
+          const Mdy = touchE.touches[0]!.clientY - touchE.touches[1]!.clientY;
           const Mdist = Math.sqrt(Mdx * Mdx + Mdy * Mdy);
 
           scaleRatio = Mdist / previousDist;
 
           previousDist = Mdist;
         }
-        if (e.deltaY !== undefined && e.deltaY < 0) scaleRatio = 1.1;
-        else if (e.deltaY !== undefined && e.deltaY > 0) scaleRatio = 0.9;
+        if (wheelE?.deltaY !== undefined && wheelE.deltaY < 0) scaleRatio = 1.1;
+        else if (wheelE?.deltaY !== undefined && wheelE.deltaY > 0) scaleRatio = 0.9;
 
         intendedScale = Math.max(0.131, Math.min(scale * scaleRatio, 9.4));
 
@@ -867,7 +911,6 @@
       svg.addEventListener("mouseup", () => {
         isPanning = false;
       });
-      svg.addEventListener("wheel", StartHandler, { passive: false });
       svg.addEventListener("wheel", DragPanHandler, { passive: false });
       //Zoom&Pan End
       //Settings Start
@@ -910,8 +953,8 @@
         if (pathSettings[option.id]) {
           pathOption = pathSettings[option.id] ?? "";
           pathNetwork.querySelectorAll(".path").forEach(pat => {
-            const VPath = pat.children[0] as SVGPathElement;
-            const HitPath = pat.children[1] as SVGPathElement;
+            const VPath = pat.children[1] as SVGPathElement;
+            const HitPath = pat.children[2] as SVGPathElement;
             updatePath(VPath!, HitPath!);
           });
         }
@@ -1049,18 +1092,21 @@
         };
       }
 
-      function ApplyCol(colorIn: any) { //since it can be a string or an SVGCircleEl
-        let Color;
-        if (colorIn.tagName) Color = colorIn.getAttribute("fill");
-        else Color = colorIn;
+      function ApplyCol(colorIn: SVGCircleElement | string) {
+        let Color: string | null;
+        if (colorIn instanceof SVGCircleElement) {
+          Color = colorIn.getAttribute("fill");
+        } else {
+          Color = colorIn;
+        }
         if (Color != "url(#rainbow)") {
-          if (ApplyStyleTo == ".path") PathCol = Color;
-          else if (ApplyStyleTo == ".node") NodeCol = Color;
+          if (ApplyStyleTo == ".path") PathCol = Color as string;
+          else if (ApplyStyleTo == ".node") NodeCol = Color as string;
         }
         if (!ApplyStyleTo) return;
         network.querySelectorAll(ApplyStyleTo).forEach((el) => {
           if (ApplyStyleTo == ".path")
-            el.children[0]?.setAttribute("stroke", PathCol);
+            el.children[1]?.setAttribute("stroke", PathCol);
           else if (ApplyStyleTo == ".node") el.setAttribute("fill", NodeCol);
         });
         JSONSave();
@@ -1089,8 +1135,8 @@
         infoPopupSection.innerHTML = "";
         nodeNetwork.innerHTML = "";
         pathNetwork.innerHTML = "";
-        const onLayerNodes = state.nodes.filter((n: any) => parseInt(n.layer) == userOnLayer);
-        const onLayerPaths = state.paths.filter((p: any) => parseInt(p.layer) == userOnLayer);
+        const onLayerNodes = state.nodes.filter((n: NodalNode) => parseInt(n.layer) == userOnLayer);
+        const onLayerPaths = state.paths.filter((p: NodalPath) => parseInt(p.layer) == userOnLayer);
         onLayerNodes.forEach((n: NodalNode) => {
 			    const circG = document.createElementNS("http://www.w3.org/2000/svg", "g");
           const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -1107,13 +1153,13 @@
           makeDraggable(circG);
         });
   
-        onLayerPaths.forEach((p: any) => {
+        onLayerPaths.forEach((p: NodalPath) => {
           const startN = document.getElementById(p.x) as unknown as SVGCircleElement;
           const endN = document.getElementById(p.y) as unknown as SVGCircleElement;
           if (startN && endN) {
 				    NodeStart = startN;
 				    NodeEnd = endN;
-				    drawPath(startN, endN, true);
+				    drawPath(startN, endN, true, false);
 			     }
           // grouping and other SVG stuff is handled by drawPath
         });
@@ -1135,8 +1181,10 @@
           paths: []
         };
         //Assignment
-        nodeCount = state.nodes.length + 1;
-        pathCount = state.paths.length + 1;
+        const nodeNums = state.nodes.map((n: NodalNode) => parseInt(n.id.replace("node", "")));
+        nodeCount = nodeNums.length ? Math.max(...nodeNums) + 1 : 1;
+        const pathNums = state.paths.map((p: NodalPath) => parseInt(p.id.replace("path", "")));
+        pathCount = pathNums.length ? Math.max(...pathNums) + 1 : 1;
         NodeCol = (state.settings && state.settings[0].nodecolor) ? state.settings[0].nodecolor : "#73CFFF";
         PathCol = (state.settings && state.settings[0].pathcolor) ? state.settings[0].pathcolor : "#FFFFFF";
         pathOption = (state.settings && state.settings[0].pathopt) ? state.settings[0].pathopt : "8";

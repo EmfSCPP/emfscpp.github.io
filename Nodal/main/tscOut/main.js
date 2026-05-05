@@ -103,6 +103,8 @@ Path.addEventListener("click", () => {
         guide.style.display = "none";
         document.removeEventListener("click", clickOne);
         document.removeEventListener("click", clickTwo);
+        document.removeEventListener("touchend", clickOne);
+        document.removeEventListener("touchend", clickTwo);
         pathMode = false;
         return;
     }
@@ -110,6 +112,7 @@ Path.addEventListener("click", () => {
     guide.style.display = "block";
     guide.textContent = "Select Start Node";
     document.addEventListener("click", clickOne);
+    document.addEventListener("touchend", clickOne);
 });
 const clickOne = (e) => {
     e.stopPropagation();
@@ -121,7 +124,9 @@ const clickOne = (e) => {
         NodeStart = startNode;
         guide.textContent = "Select End Node";
         document.removeEventListener("click", clickOne);
+        document.removeEventListener("touchend", clickOne);
         document.addEventListener("click", clickTwo);
+        document.addEventListener("touchend", clickTwo);
     }
 };
 const clickTwo = (e) => {
@@ -132,18 +137,14 @@ const clickTwo = (e) => {
     if (target.tagName == "circle") {
         const endNode = target.parentElement;
         NodeEnd = endNode;
-        drawPath(NodeStart, NodeEnd);
+        drawPath(NodeStart, NodeEnd, false, true);
         guide.style.display = "none";
-        const circles = network.querySelectorAll("circle");
-        circles.forEach((circle) => {
-            circle.setAttribute("stroke-width", "0");
-            circle.setAttribute("r", "40");
-        });
         document.removeEventListener("click", clickTwo);
+        document.removeEventListener("touchend", clickTwo);
         pathMode = false;
     }
 };
-function drawPath(Start, End, isPathLoading = false) {
+function drawPath(Start, End, isPathLoading = false, playSoundBool) {
     if (Start == End)
         return;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -188,7 +189,8 @@ function drawPath(Start, End, isPathLoading = false) {
     PG.appendChild(path);
     PG.appendChild(pHitbox);
     pathNetwork.appendChild(PG);
-    playSound2(); //path sound
+    if (playSoundBool)
+        playSound2(); //path sound
     updatePath(path, pHitbox);
     if (!isPathLoading) {
         const data = {
@@ -271,6 +273,7 @@ function updatePath(p, hitbox) {
 //Drag Start
 function makeDraggable(node) {
     let drag = false;
+    let touchMoved = false;
     node.addEventListener("click", () => {
         if (pathMode || deleteMode)
             return;
@@ -289,7 +292,11 @@ function makeDraggable(node) {
         }
     });
     //Touch Start
+    node.addEventListener("touchstart", () => {
+        touchMoved = false;
+    });
     node.addEventListener("touchmove", (e) => {
+        touchMoved = true;
         if (!drag)
             return;
         const circle = node.querySelector("circle");
@@ -298,7 +305,7 @@ function makeDraggable(node) {
         pt.y = e.touches[0].clientY;
         const finger = pt.matrixTransform(network.getScreenCTM().inverse());
         Sdrag(circle, finger.x, finger.y);
-        network.querySelectorAll(".pathV").forEach((p) => {
+        pathNetwork.querySelectorAll(".pathV").forEach((p) => {
             if (p.getAttribute("data-start") === node.id ||
                 p.getAttribute("data-end") === node.id) {
                 const hitboxPath = p.parentElement?.querySelector(".pathHB");
@@ -306,7 +313,24 @@ function makeDraggable(node) {
             }
         });
     });
-    node.addEventListener("touchend", () => {
+    node.addEventListener("touchend", (e) => {
+        if (!touchMoved) {
+            e.preventDefault();
+            drag = !drag;
+            const circle = node.querySelector("circle");
+            if (drag && circle) {
+                circle.setAttribute("r", "40");
+                circle.setAttribute("stroke", "#EFFFFA");
+                circle.setAttribute("stroke-width", "4");
+                showPopup(node);
+            }
+            else if (!drag && circle) {
+                circle.setAttribute("r", "40");
+                circle.setAttribute("stroke-width", "0");
+                removePopup(node);
+            }
+            return;
+        }
         const Ndata = state.nodes.find((n) => n.id === node.id);
         if (!Ndata)
             return;
@@ -346,8 +370,8 @@ function Sdrag(ele, x, y) {
         const corInPop = infoPopupSection.querySelector(`#popup-${ele.parentElement?.id}`);
         corInPop?.setAttribute("transform", `translate(${x - 95}, ${y + 60})`);
         resolveCollisions(ele);
-        network.querySelectorAll(".path").forEach(pat => {
-            updatePath(pat.children[0], pat.children[1]);
+        pathNetwork.querySelectorAll(".path").forEach(pat => {
+            updatePath(pat.children[1], pat.children[2]);
         });
     }
 }
@@ -379,6 +403,10 @@ function resolveCollisions(movedNode) {
             const otherGroup = other.parentElement;
             if (!otherGroup)
                 return;
+            const otherPopup = infoPopupSection.querySelector(`#popup-${otherGroup.getAttribute("id")}`);
+            if (otherPopup) {
+                otherPopup.setAttribute("transform", `translate(${X - 95}, ${Y + 60})`);
+            }
             const otherD = state.nodes.find((n) => n.id === otherGroup.id);
             if (otherD) {
                 otherD.x = X;
@@ -436,14 +464,15 @@ const DeleteClick = (e) => {
         if (!nodeGroup)
             return;
         const nodeId = nodeGroup.id;
+        removePopup(nodeGroup); //here, to avoid seeing the popup while deletion is happening
         nodeGroup.classList.add("deletingelement");
-        network.querySelectorAll(".pathV").forEach((p) => {
+        pathNetwork.querySelectorAll(".pathV").forEach((p) => {
             if (p.getAttribute("data-start") === nodeId ||
                 p.getAttribute("data-end") === nodeId)
                 p.parentElement?.classList.add("deletingelement");
         });
         setTimeout(() => {
-            network.querySelectorAll(".pathV").forEach((p) => {
+            pathNetwork.querySelectorAll(".pathV").forEach((p) => {
                 if (p.getAttribute("data-start") === nodeId ||
                     p.getAttribute("data-end") === nodeId)
                     p.parentElement?.remove();
@@ -453,9 +482,10 @@ const DeleteClick = (e) => {
             nodeGroup.remove();
             guide.style.display = "none";
             deleteMode = !deleteMode;
+            JSONSave();
         }, 300);
     }
-    if (target?.matches(".pathHB") && deleteMode) {
+    if ((target?.matches(".pathV") || target?.matches(".pathHB")) && deleteMode) {
         playSound1(180, 0.2, 'sawtooth', 0.2);
         const pg = target.parentElement;
         if (!pg)
@@ -466,6 +496,7 @@ const DeleteClick = (e) => {
             pg.remove();
             guide.style.display = "none";
             deleteMode = !deleteMode;
+            JSONSave();
         }, 300);
     }
 };
@@ -473,6 +504,7 @@ Delete.addEventListener("click", () => {
     if (deleteMode) {
         guide.style.display = "none";
         document.removeEventListener("click", DeleteClick);
+        document.removeEventListener("touchend", DeleteClick);
         deleteMode = false;
         return;
     }
@@ -480,6 +512,7 @@ Delete.addEventListener("click", () => {
     guide.style.display = "block";
     guide.textContent = "Select Node/Path To Delete";
     document.addEventListener("click", DeleteClick);
+    document.addEventListener("touchend", DeleteClick);
 });
 //Delete End
 //Clear Start
@@ -488,6 +521,7 @@ clearBtn.addEventListener("click", () => {
     if (confirm("Clear all nodes and paths?")) {
         nodeNetwork.innerHTML = "";
         pathNetwork.innerHTML = "";
+        infoPopupSection.innerHTML = "";
         localStorage.clear();
         state = { settings: [], nodes: [], paths: [] };
         nodeCount = 1;
@@ -582,9 +616,6 @@ function Deletion(layerNum) {
         if (parseInt(p.layer) > layerNum)
             p.layer = String(parseInt(p.layer) - 1);
     });
-    console.log("Looking for layer:", layerNum);
-    console.log("Found:", document.querySelector(`[data-layer-prop="${layerNum}"]`));
-    console.log("All layer props:", [...layerMenu.querySelectorAll("button")].map(b => b.dataset.layerProp));
     const LayerToDie = document.querySelector(`[data-layer-prop="${layerNum}"]`);
     LayerToDie?.classList.add("deletingelement");
     setTimeout(() => {
@@ -616,6 +647,10 @@ function NewLayerBtnFuncAdd(ele) {
         const num = parseInt(ele.dataset.layerProp);
         if (layerDeleteMode) {
             Deletion(num);
+            const removableLBTNs = newLayerMenu.querySelectorAll("button");
+            removableLBTNs.forEach(btn => {
+                btn.classList.remove("RemovableLBTN"); //HERE
+            });
             guide.textContent = "";
             guide.style.display = "none";
             return;
@@ -655,17 +690,19 @@ layerAddBtn.onclick = () => {
 };
 layerRemBtn.onclick = () => {
     layerDeleteMode = !layerDeleteMode;
-    const dynamicContainer = document.querySelector(".createdLayerBtns");
-    const removableLBTNs = dynamicContainer ? dynamicContainer.querySelectorAll("button") : [];
+    const removableLBTNs = newLayerMenu.querySelectorAll("button");
     if (layerDeleteMode) {
         removableLBTNs.forEach(btn => {
-            btn.classList.add("removableLBTN");
+            btn.classList.add("RemovableLBTN");
         });
+        guide.textContent = "Select Layer To Delete";
+        guide.style.display = "block";
     }
     else {
         removableLBTNs.forEach(btn => {
-            btn.classList.remove("removableLBTN");
+            btn.classList.remove("RemovableLBTN");
         });
+        guide.style.display = "none";
     }
     //red outline around removable layers code
 };
@@ -675,24 +712,32 @@ let isPanning = false;
 let previousDist; //touch devices
 let prevMidX, prevMidY;
 const StartHandler = (e) => {
-    if (e.touches && e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        previousDist = Math.sqrt(dx * dx + dy * dy);
+    const touchE = e instanceof TouchEvent ? e : null;
+    const mouseE = e instanceof MouseEvent ? e : null;
+    if (touchE) {
+        if (touchE.touches.length === 2) {
+            const dx = touchE.touches[0].clientX - touchE.touches[1].clientX;
+            const dy = touchE.touches[0].clientY - touchE.touches[1].clientY;
+            previousDist = Math.sqrt(dx * dx + dy * dy);
+            prevMidX = (touchE.touches[0].clientX + touchE.touches[1].clientX) / 2;
+            prevMidY = (touchE.touches[0].clientY + touchE.touches[1].clientY) / 2;
+        }
     }
-    prevMidX = e.touches && e.touches.length > 1 ? (e.touches[0].clientX + e.touches[1].clientX) / 2 : e.clientX;
-    prevMidY = e.touches && e.touches.length > 1 ? (e.touches[0].clientY + e.touches[1].clientY) / 2 : e.clientY;
+    else if (mouseE) {
+        prevMidX = mouseE.clientX;
+        prevMidY = mouseE.clientY;
+    }
 };
+//Telling tsc to shut up, since we already check if e.touches exists on line 821
 let rafPending = false;
 const DragPanHandler = (e) => {
-    if (e.type === "mousemove" && !isPanning)
+    const touchE = e instanceof TouchEvent ? e : null;
+    const mouseE = e instanceof MouseEvent && !(e instanceof WheelEvent) ? e : null;
+    const wheelE = e instanceof WheelEvent ? e : null;
+    if (mouseE && !isPanning)
         return;
-    const MidX = e.touches && e.touches.length > 1
-        ? (e.touches[0].clientX + e.touches[1].clientX) / 2
-        : e.clientX;
-    const MidY = e.touches && e.touches.length > 1
-        ? (e.touches[0].clientY + e.touches[1].clientY) / 2
-        : e.clientY;
+    const MidX = touchE && touchE.touches.length > 1 ? (touchE.touches[0].clientX + touchE.touches[1].clientX) / 2 : (mouseE ?? wheelE).clientX;
+    const MidY = touchE && touchE.touches.length > 1 ? (touchE.touches[0].clientY + touchE.touches[1].clientY) / 2 : (mouseE ?? wheelE).clientY;
     if (!isFinite(MidX) || !isFinite(MidY))
         return;
     const ctm = svg.getScreenCTM();
@@ -708,16 +753,16 @@ const DragPanHandler = (e) => {
     const worldY = (center.y - transY) / scale;
     let scaleRatio = 1;
     let intendedScale;
-    if (e.touches && e.touches.length == 2) {
-        const Mdx = e.touches[0].clientX - e.touches[1].clientX;
-        const Mdy = e.touches[0].clientY - e.touches[1].clientY;
+    if (touchE && touchE.touches.length == 2) {
+        const Mdx = touchE.touches[0].clientX - touchE.touches[1].clientX;
+        const Mdy = touchE.touches[0].clientY - touchE.touches[1].clientY;
         const Mdist = Math.sqrt(Mdx * Mdx + Mdy * Mdy);
         scaleRatio = Mdist / previousDist;
         previousDist = Mdist;
     }
-    if (e.deltaY !== undefined && e.deltaY < 0)
+    if (wheelE?.deltaY !== undefined && wheelE.deltaY < 0)
         scaleRatio = 1.1;
-    else if (e.deltaY !== undefined && e.deltaY > 0)
+    else if (wheelE?.deltaY !== undefined && wheelE.deltaY > 0)
         scaleRatio = 0.9;
     intendedScale = Math.max(0.131, Math.min(scale * scaleRatio, 9.4));
     transX = center.x - worldX * intendedScale;
@@ -745,7 +790,6 @@ svg.addEventListener("mousemove", DragPanHandler);
 svg.addEventListener("mouseup", () => {
     isPanning = false;
 });
-svg.addEventListener("wheel", StartHandler, { passive: false });
 svg.addEventListener("wheel", DragPanHandler, { passive: false });
 //Zoom&Pan End
 //Settings Start
@@ -781,8 +825,8 @@ function SettingPath(option) {
     if (pathSettings[option.id]) {
         pathOption = pathSettings[option.id] ?? "";
         pathNetwork.querySelectorAll(".path").forEach(pat => {
-            const VPath = pat.children[0];
-            const HitPath = pat.children[1];
+            const VPath = pat.children[1];
+            const HitPath = pat.children[2];
             updatePath(VPath, HitPath);
         });
     }
@@ -912,10 +956,12 @@ function loadColorPickerMenu() {
 }
 function ApplyCol(colorIn) {
     let Color;
-    if (colorIn.tagName)
+    if (colorIn instanceof SVGCircleElement) {
         Color = colorIn.getAttribute("fill");
-    else
+    }
+    else {
         Color = colorIn;
+    }
     if (Color != "url(#rainbow)") {
         if (ApplyStyleTo == ".path")
             PathCol = Color;
@@ -926,7 +972,7 @@ function ApplyCol(colorIn) {
         return;
     network.querySelectorAll(ApplyStyleTo).forEach((el) => {
         if (ApplyStyleTo == ".path")
-            el.children[0]?.setAttribute("stroke", PathCol);
+            el.children[1]?.setAttribute("stroke", PathCol);
         else if (ApplyStyleTo == ".node")
             el.setAttribute("fill", NodeCol);
     });
@@ -976,7 +1022,7 @@ function JSONLoad(type) {
         if (startN && endN) {
             NodeStart = startN;
             NodeEnd = endN;
-            drawPath(startN, endN, true);
+            drawPath(startN, endN, true, false);
         }
         // grouping and other SVG stuff is handled by drawPath
     });
@@ -997,8 +1043,10 @@ function boot() {
         paths: []
     };
     //Assignment
-    nodeCount = state.nodes.length + 1;
-    pathCount = state.paths.length + 1;
+    const nodeNums = state.nodes.map((n) => parseInt(n.id.replace("node", "")));
+    nodeCount = nodeNums.length ? Math.max(...nodeNums) + 1 : 1;
+    const pathNums = state.paths.map((p) => parseInt(p.id.replace("path", "")));
+    pathCount = pathNums.length ? Math.max(...pathNums) + 1 : 1;
     NodeCol = (state.settings && state.settings[0].nodecolor) ? state.settings[0].nodecolor : "#73CFFF";
     PathCol = (state.settings && state.settings[0].pathcolor) ? state.settings[0].pathcolor : "#FFFFFF";
     pathOption = (state.settings && state.settings[0].pathopt) ? state.settings[0].pathopt : "8";
