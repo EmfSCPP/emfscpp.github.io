@@ -64,33 +64,47 @@ let NodeCol = "#73CFFF"; //Default Node color
 let PathCol = "#FFFFFF"; //Default Path color
 const RADIUS = 40;
 //HTML Lines Start
-// prettier-ignore
 const colorPresetDiv = `<svg viewBox="0 0 480 100">
-              <defs>
-                <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color: hsl(0, 100%, 50%)" />
-                  <stop offset="17%" style="stop-color: hsl(60, 100%, 50%)" />
-                  <stop offset="33%" style="stop-color: hsl(120, 100%, 50%)" />
-                  <stop offset="50%" style="stop-color: hsl(180, 100%, 50%)" />
-                  <stop offset="67%" style="stop-color: hsl(240, 100%, 50%)" />
-                  <stop offset="83%" style="stop-color: hsl(300, 100%, 50%)" />
-                  <stop offset="100%" style="stop-color: hsl(360, 100%, 50%)" />
-                </linearGradient>
-              </defs>
+                                <defs>
+                                  <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color: hsl(0, 100%, 50%)" />
+                                    <stop offset="17%" style="stop-color: hsl(60, 100%, 50%)" />
+                                    <stop offset="33%" style="stop-color: hsl(120, 100%, 50%)" />
+                                    <stop offset="50%" style="stop-color: hsl(180, 100%, 50%)" />
+                                    <stop offset="67%" style="stop-color: hsl(240, 100%, 50%)" />
+                                    <stop offset="83%" style="stop-color: hsl(300, 100%, 50%)" />
+                                    <stop offset="100%" style="stop-color: hsl(360, 100%, 50%)" />
+                                  </linearGradient>
+                              </defs>
 
-              <circle id="col1" r="30" cx="80" cy="70" fill="#73CFFF" />
-              <circle id="col2" r="30" cx="160" cy="70" fill="#9163F2" />
-              <circle id="col3" r="30" cx="240" cy="70" fill="#E30B45" />
-              <circle id="col4" r="30" cx="320" cy="70" fill="#FFCB00" />
-              <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
-            </svg>`;
-// prettier-ignore
+                              <circle id="col1" r="30" cx="80" cy="70" fill="#73CFFF" />
+                              <circle id="col2" r="30" cx="160" cy="70" fill="#9163F2" />
+                              <circle id="col3" r="30" cx="240" cy="70" fill="#E30B45" />
+                              <circle id="col4" r="30" cx="320" cy="70" fill="#FFCB00" />
+                              <circle id="colPick" r="30" cx="400" cy="70" fill="url(#rainbow)" />
+                            </svg>`;
 const colorPickerDiv = `<svg id="colorFeed" viewBox="0 0 60 40">
-                              <rect id="colorShow" x="0" y="0" width="60" height="40" rx="15" ry="15"/>
+                                <rect id="colorShow" x="0" y="0" width="60" height="40" rx="15" ry="15"/>
                               </svg>
                               <input id="hexColIn"/>
                               <button id="applyCusCol">Apply</button>
                               <button id="backBtn">&#8592;</button>`;
+const animFlowToggleDiv = `<button id="animToggle">
+                                  <svg viewBox="-100 -100 200 200">
+                                    <defs>
+                                    <marker viewBox="-15 -15 30 30" id="arrowhead" markerWidth="15" markerHeight="15" refX="0" refY="0" orient="auto">
+                                      <polyline points="-8 -6, 0 0, -8 6" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(1.4)"/>
+                                    </marker>
+                                    </defs>
+                                    <g>
+                                      <polyline id="animateToggleLogo" points="-8 -6, 0 0, -8 6" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="scale(4.8)"/>
+                                      <animateMotion dur="1s" repeatCount="indefinite" rotate="auto">
+                                        <mpath href="#animated"></mpath>
+                                      </animateMotion>
+                                    </g>
+                                    <path id="animated" class="animated" d="M -90 10 L 90 10" fill="none" stroke="white" stroke-width="7" stroke-linecap="round">
+                                  </svg>
+                                </button>`;
 //HTML Lines End
 //Path Start
 const Path = document.getElementById("pathBtn");
@@ -191,6 +205,7 @@ function drawPath(Start, End, isPathLoading = false, playSoundBool) {
     pathNetwork.appendChild(PG);
     if (playSoundBool)
         playSound2(); //path sound
+    //to not crash while loading
     updatePath(path, pHitbox);
     if (!isPathLoading) {
         const data = {
@@ -649,7 +664,7 @@ function NewLayerBtnFuncAdd(ele) {
             Deletion(num);
             const removableLBTNs = newLayerMenu.querySelectorAll("button");
             removableLBTNs.forEach(btn => {
-                btn.classList.remove("RemovableLBTN"); //HERE
+                btn.classList.remove("RemovableLBTN");
             });
             guide.textContent = "";
             guide.style.display = "none";
@@ -799,10 +814,11 @@ const popUp2 = document.getElementById("settingPop2");
 const SP11 = document.getElementById("SP11"); //4
 const SP12 = document.getElementById("SP12"); //8
 const SP13 = document.getElementById("SP13"); //Smooth
-const SP21 = document.getElementById("SP21"); //Nodes
-const SP22 = document.getElementById("SP22"); //Paths
+const SP21 = document.getElementById("SP21"); //Nodes Color
+const SP22 = document.getElementById("SP22"); //Paths Color
+const SP23 = document.getElementById("SP23"); //Animated or Static Flow
 const optsArr1 = [SP11, SP12, SP13];
-const optsArr2 = [SP21, SP22];
+const optsArr2 = [SP21, SP22, SP23];
 let popUpShow = false;
 settingsBtn.addEventListener("click", () => {
     popUpShow = !popUpShow;
@@ -832,8 +848,7 @@ function SettingPath(option) {
     }
 }
 for (const funcLoopA of optsArr1) {
-    funcLoopA.addEventListener("click", (e) => {
-        e.stopPropagation();
+    funcLoopA.onclick = () => {
         funcLoopA.classList.add("selected");
         SettingPath(funcLoopA);
         optsArr1.forEach(opt => {
@@ -841,7 +856,7 @@ for (const funcLoopA of optsArr1) {
                 return;
             opt.classList.remove("selected");
         });
-    });
+    };
 }
 //Pathing Settings End
 //Style Settings Start
@@ -857,7 +872,7 @@ function loadMainColorMenu() {
     const C2 = document.getElementById("col2");
     const C3 = document.getElementById("col3");
     const C4 = document.getElementById("col4");
-    const C5 = document.getElementById("colPick"); //picker
+    const C5 = document.getElementById("colPick"); //color picker
     const colorOptions = [C1, C2, C3, C4, C5];
     function SettingStyle(option) {
         if (!styleAppliers[option.id]) {
@@ -896,12 +911,18 @@ function loadMainColorMenu() {
     for (const funcLoopB of optsArr2) {
         funcLoopB.onclick = () => {
             funcLoopB.classList.toggle("selected");
-            SettingStyle(funcLoopB);
+            if (funcLoopB != SP23) {
+                loadMainColorMenu();
+                SettingStyle(funcLoopB);
+            }
             optsArr2.forEach((opt) => {
                 if (opt.id === funcLoopB.id)
                     return;
                 opt.classList.remove("selected");
             });
+            if (funcLoopB == SP23) {
+                loadAnimFlowToggleDiv();
+            }
         };
     }
     const colPresEvents = (arg) => (e) => {
@@ -978,6 +999,30 @@ function ApplyCol(colorIn) {
     });
     JSONSave();
 }
+//Animated Or Static Flow Settings Start
+let animatedFlow = true;
+function loadAnimFlowToggleDiv() {
+    stylePopup.innerHTML = animFlowToggleDiv;
+    stylePopup.style.display = "block";
+    const flowStyleToggle = document.getElementById("animToggle");
+    const flowStyleIndicLine = flowStyleToggle.querySelector(".animated");
+    const movingArrow = document.getElementById("animateToggleLogo");
+    flowStyleToggle.style.background = "linear-gradient(90deg, #6293dca6, #a8c7f8a6)";
+    flowStyleToggle.style.marginBottom = "30px";
+    let animated = true;
+    flowStyleToggle.onclick = () => {
+        animated = !animated;
+        if (!animated) {
+            flowStyleIndicLine.style.markerEnd = "url(#arrowhead)";
+            movingArrow.setAttribute("stroke-width", "0");
+        }
+        else {
+            flowStyleIndicLine.style.markerEnd = "";
+            movingArrow.setAttribute("stroke-width", "1.5");
+        }
+    };
+}
+//Animated Or Static Flow Settings End
 //Style Settings End
 //Settings End
 //State Storage & Boot Start
