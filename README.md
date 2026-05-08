@@ -7,6 +7,6 @@ Or use... No, that shall be secret for now, just in case.
 This will most likely flop, since why would anybody torture themselves? That is why it has multiple goals, just in case.
 
 Documentation for this project is in
-`Files/Nodal/documentation.md`
+`Files/Nodal/documentation.txt`
 
 Wiki for this project - [**Nodal Wiki**](https://github.com/EmfSCPP/emfscpp.github.io/wiki)
